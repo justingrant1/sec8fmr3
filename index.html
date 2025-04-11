@@ -168,6 +168,15 @@
                 <p>Tenant 30% Share: <span id="tenant-share"></span></p>
                 <p><strong>Recommended RFTA Rent Amount: <span id="recommended-rent"></span></strong></p>
                 <p>Status: <span id="status"></span></p>
+                
+                <hr style="margin: 20px 0;">
+                
+                <div id="calculation-details">
+                    <h4>Calculation Details:</h4>
+                    <div id="formula-breakdown" style="font-size: 14px; line-height: 1.5;">
+                        <!-- Formula breakdown will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -521,6 +530,166 @@
             
             // Show results
             document.getElementById('results').style.display = 'block';
+            
+            // Populate the formula breakdown
+            const formulaBreakdown = document.getElementById('formula-breakdown');
+            
+            // Create a detailed breakdown of all calculations
+            let breakdownHTML = `
+                <p><strong>Input Values:</strong></p>
+                <ul>
+                    <li>ZIP Code: ${zip}</li>
+                    <li>Bedrooms: ${bedrooms}</li>
+                    <li>Proposed Rent: $${proposedRent.toFixed(2)}</li>
+                    <li>Tenant Monthly Income: $${tenantIncome.toFixed(2)}</li>
+                    <li>Tenant Utility Responsibilities: ${[
+                        heating ? 'Heating' : '',
+                        water ? 'Water' : '',
+                        cooking ? 'Cooking' : '', 
+                        trash ? 'Trash' : ''
+                    ].filter(Boolean).join(', ') || 'None'}</li>
+                    <li>Tenant-Provided Appliances: ${[
+                        noStove ? 'Stove' : '',
+                        noRefrigerator ? 'Refrigerator' : ''
+                    ].filter(Boolean).join(', ') || 'None'}</li>
+                </ul>
+                
+                <p><strong>Utility Allowance Calculation:</strong></p>
+                <ul>`;
+                
+            // Add utility breakdown details
+            if (heating) {
+                let heatingValue = 0;
+                if (utilityData['SPACE HEAT (natural gas)']?.['1 Single-family dwelling']) {
+                    heatingValue = utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
+                    breakdownHTML += `<li>Heating (natural gas): $${heatingValue.toFixed(2)}</li>`;
+                } else if (utilityData['heating']) {
+                    heatingValue = utilityData['heating'][bedrooms] || 0;
+                    breakdownHTML += `<li>Heating: $${heatingValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            if (water) {
+                let waterValue = 0;
+                if (utilityData['WATER & SEWER (if metered)']?.['25 City of Cleveland']) {
+                    waterValue = utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][bedrooms] || 0;
+                    breakdownHTML += `<li>Water & Sewer: $${waterValue.toFixed(2)}</li>`;
+                } else if (utilityData['water_sewer']) {
+                    waterValue = utilityData['water_sewer'][bedrooms] || 0;
+                    breakdownHTML += `<li>Water & Sewer: $${waterValue.toFixed(2)}</li>`;
+                } else if (utilityData['water']) {
+                    waterValue = utilityData['water'][bedrooms] || 0;
+                    breakdownHTML += `<li>Water: $${waterValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            if (cooking) {
+                let cookingValue = 0;
+                if (utilityData['COOKING']?.['17 Natural gas']) {
+                    cookingValue = utilityData['COOKING']['17 Natural gas'][bedrooms] || 0;
+                    breakdownHTML += `<li>Cooking (natural gas): $${cookingValue.toFixed(2)}</li>`;
+                } else if (utilityData['cooking']) {
+                    cookingValue = utilityData['cooking'][bedrooms] || 0;
+                    breakdownHTML += `<li>Cooking: $${cookingValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            if (trash) {
+                let trashValue = 0;
+                if (utilityData['TRASH']?.['33 City of Cleveland']) {
+                    trashValue = utilityData['TRASH']['33 City of Cleveland'][bedrooms] || 0;
+                    breakdownHTML += `<li>Trash: $${trashValue.toFixed(2)}</li>`;
+                } else if (utilityData['trash']) {
+                    trashValue = utilityData['trash'][bedrooms] || 0;
+                    breakdownHTML += `<li>Trash: $${trashValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            // Add electricity and water heating if tenant pays any utilities
+            if (heating || water || cooking || trash) {
+                let electricityValue = 0;
+                if (utilityData['ELECTRICITY-other']?.['19 Single-family']) {
+                    electricityValue = utilityData['ELECTRICITY-other']['19 Single-family'][bedrooms] || 0;
+                    breakdownHTML += `<li>Electricity (other): $${electricityValue.toFixed(2)}</li>`;
+                } else if (utilityData['electricity']) {
+                    electricityValue = utilityData['electricity'][bedrooms] || 0;
+                    breakdownHTML += `<li>Electricity: $${electricityValue.toFixed(2)}</li>`;
+                }
+                
+                let waterHeatingValue = 0;
+                if (utilityData['DOMESTIC WATER HEATING']?.['16 Electricity']) {
+                    waterHeatingValue = utilityData['DOMESTIC WATER HEATING']['16 Electricity'][bedrooms] || 0;
+                    breakdownHTML += `<li>Water Heating (electricity): $${waterHeatingValue.toFixed(2)}</li>`;
+                } else if (utilityData['water_heating']) {
+                    waterHeatingValue = utilityData['water_heating'][bedrooms] || 0;
+                    breakdownHTML += `<li>Water Heating: $${waterHeatingValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            // Appliances
+            if (noStove) {
+                let stoveValue = 0;
+                if (utilityData['APPLIANCES (if not owner-furnished)']?.['31 Range']) {
+                    stoveValue = utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][bedrooms] || 0;
+                    breakdownHTML += `<li>Stove/Range: $${stoveValue.toFixed(2)}</li>`;
+                } else if (utilityData['stove']) {
+                    stoveValue = utilityData['stove'][bedrooms] || 0;
+                    breakdownHTML += `<li>Stove: $${stoveValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            if (noRefrigerator) {
+                let refrigeratorValue = 0;
+                if (utilityData['APPLIANCES (if not owner-furnished)']?.['32 Refrigerator']) {
+                    refrigeratorValue = utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][bedrooms] || 0;
+                    breakdownHTML += `<li>Refrigerator: $${refrigeratorValue.toFixed(2)}</li>`;
+                } else if (utilityData['refrigerator']) {
+                    refrigeratorValue = utilityData['refrigerator'][bedrooms] || 0;
+                    breakdownHTML += `<li>Refrigerator: $${refrigeratorValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            // Add total utility deduction
+            breakdownHTML += `<li><strong>Total Utility Deduction: $${utilityDeduction.toFixed(2)}</strong></li>
+                </ul>
+                
+                <p><strong>Fair Market Rent Calculations:</strong></p>
+                <ul>
+                    <li>Gross FMR (from payment standards for ZIP ${zip}, ${bedrooms} BR): $${grossFMR.toFixed(2)}</li>
+                    <li>Net FMR = Gross FMR - Utility Deduction: $${grossFMR.toFixed(2)} - $${utilityDeduction.toFixed(2)} = $${netFMR.toFixed(2)}</li>
+                    <li>Maximum Allowed Rent (110% of Gross FMR): $${grossFMR.toFixed(2)} × 1.10 = $${maxAllowedRent.toFixed(2)}</li>
+                    <li>Tenant 30% Share (30% of Monthly Income): $${tenantIncome.toFixed(2)} × 0.30 = $${tenantShare.toFixed(2)}</li>
+                </ul>
+                
+                <p><strong>Approval Calculations:</strong></p>
+                <ul>
+                    <li>Proposed Rent: $${proposedRent.toFixed(2)}</li>
+                    <li>Overage Amount (Proposed Rent - Net FMR): $${proposedRent.toFixed(2)} - $${netFMR.toFixed(2)} = $${overage.toFixed(2)}</li>
+                    <li>Maximum Allowable Overage (10% of Tenant Income): $${tenantIncome.toFixed(2)} × 0.10 = $${maxOverageAllowed.toFixed(2)}</li>
+                </ul>
+                
+                <p><strong>Approval Path Analysis:</strong></p>
+                <ul>
+                    <li><strong>Path 1:</strong> Direct Approval (if Proposed Rent ≤ Net FMR): ${proposedRent <= netFMR ? 'YES' : 'NO'}</li>
+                    <li><strong>Path 2:</strong> Approval with Tenant Extra Payment: ${(proposedRent > netFMR && proposedRent <= maxAllowedRent && overage <= maxOverageAllowed) ? 'YES' : 'NO'}
+                        <ul>
+                            <li>Is Proposed Rent ≤ 110% of Gross FMR? ${proposedRent <= maxAllowedRent ? 'YES' : 'NO'} ($${proposedRent.toFixed(2)} vs $${maxAllowedRent.toFixed(2)})</li>
+                            <li>Is Overage ≤ 10% of Tenant Income? ${overage <= maxOverageAllowed ? 'YES' : 'NO'} ($${overage.toFixed(2)} vs $${maxOverageAllowed.toFixed(2)})</li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <p><strong>Recommended RFTA Rent Amount Calculation:</strong></p>
+                <ul>
+                    <li>Extra Allowance Amount (Net FMR + Max Overage): $${netFMR.toFixed(2)} + $${maxOverageAllowed.toFixed(2)} = $${extraAllowanceAmount.toFixed(2)}</li>
+                    <li>Limited by Max Allowed: min($${maxAllowedRent.toFixed(2)}, $${extraAllowanceAmount.toFixed(2)}) = $${limitedByMaxAllowed.toFixed(2)}</li>
+                    <li>Recommended Amount: max($${netFMR.toFixed(2)}, $${limitedByMaxAllowed.toFixed(2)}) - $1.00 = $${recommendedRent.toFixed(2)}</li>
+                </ul>
+                
+                <p><strong>Final Status:</strong> <span class="${status === 'DENIED' ? 'denied' : 'approved'}">${status}</span></p>
+            `;
+            
+            formulaBreakdown.innerHTML = breakdownHTML;
         }
     </script>
 </body>
