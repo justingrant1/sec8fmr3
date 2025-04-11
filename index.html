@@ -153,15 +153,22 @@
                 const response = await fetch('list-json-files');
                 const files = await response.json();
                 
+                console.log("Files detected:", files); // Debugging
+                
                 // Parse county and state from filenames
                 files.forEach(file => {
+                    // Only process payment standards files
                     if (file.includes('_payment_standards_2025.json')) {
-                        // Extract county and state from filename
-                        const parts = file.split('_');
-                        // First part is county, second part is state
-                        if (parts.length >= 3) {
+                        // Example: "cuyahoga_OH_payment_standards_2025.json"
+                        const filenameParts = file.split('_payment_standards_2025.json')[0]; // Get "cuyahoga_OH"
+                        const parts = filenameParts.split('_');
+                        
+                        // Ensure we have at least a county and state part
+                        if (parts.length >= 2) {
                             const county = parts[0];
                             const state = parts[1];
+                            
+                            console.log(`Detected county: ${county}, state: ${state}`); // Debugging
                             
                             // Initialize state in availableCounties if not exists
                             if (!availableCounties[state]) {
@@ -179,6 +186,8 @@
                     }
                 });
                 
+                console.log("Available counties:", availableCounties); // Debugging
+                
                 // Populate state dropdown
                 populateStateDropdown();
             } catch (error) {
@@ -192,11 +201,33 @@
             const stateSelect = document.getElementById('state');
             stateSelect.innerHTML = '<option value="">-- Select State --</option>';
             
+            // Debugging - log states found
+            console.log("States to populate:", Object.keys(availableCounties));
+            
+            if (Object.keys(availableCounties).length === 0) {
+                console.warn("No states detected! Check file naming conventions.");
+                
+                // Fallback - add states manually if detection failed
+                if (!availableCounties["OH"]) {
+                    availableCounties["OH"] = [{
+                        name: "Cuyahoga",
+                        id: "cuyahoga_OH"
+                    }];
+                }
+                if (!availableCounties["AL"]) {
+                    availableCounties["AL"] = [{
+                        name: "Montgomery",
+                        id: "montgomery_AL"
+                    }];
+                }
+            }
+            
             Object.keys(availableCounties).sort().forEach(state => {
                 const option = document.createElement('option');
                 option.value = state;
                 option.textContent = state.toUpperCase();
                 stateSelect.appendChild(option);
+                console.log("Added state option:", state);
             });
         }
 
