@@ -44,6 +44,50 @@
             display: inline-block;
             margin-right: 10px;
         }
+        select {
+            padding: 10px;
+            border: 2px solid #2c3e50;
+            border-radius: 4px;
+            background-color: #fff;
+            min-width: 220px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            appearance: menulist;
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+        }
+        select option {
+            padding: 10px;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: normal;
+            font-size: 16px;
+        }
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 220px;
+        }
     </style>
 </head>
 <body>
@@ -222,13 +266,31 @@
                 }
             }
             
+            // Directly add html option elements instead of using appendChild
+            let stateOptions = '<option value="">-- Select State --</option>';
+            
+            // Add all state options
             Object.keys(availableCounties).sort().forEach(state => {
-                const option = document.createElement('option');
-                option.value = state;
-                option.textContent = state.toUpperCase();
-                stateSelect.appendChild(option);
+                stateOptions += `<option value="${state}">${state.toUpperCase()}</option>`;
                 console.log("Added state option:", state);
             });
+            
+            // Set the HTML all at once
+            stateSelect.innerHTML = stateOptions;
+            
+            // Hard-coded options as fallback
+            if (Object.keys(availableCounties).length < 2) {
+                console.warn("Using hard-coded fallback state options");
+                stateSelect.innerHTML = `
+                    <option value="">-- Select State --</option>
+                    <option value="AL">AL</option>
+                    <option value="OH">OH</option>
+                `;
+            }
+            
+            // Force the select to redraw
+            stateSelect.blur();
+            stateSelect.focus();
         }
 
         // Populate county dropdown based on state selection
