@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "build": "xcopy /Y *.html public\\ && xcopy /Y *.json public\\ && xcopy /Y *.js public\\ && xcopy /Y /E /I api public\\api",
+    "build": "mkdir -p public/api && cp *.html public/ && cp *.json public/ && cp *.js public/ && cp -r api/* public/api/",
     "vercel-build": "npm run build"
   },
   "engines": {
