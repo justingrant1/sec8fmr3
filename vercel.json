@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/list-json-files", "dest": "/api/list-json-files.js" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024
+    }
+  }
+}
