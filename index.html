@@ -141,6 +141,9 @@
                     <input type="checkbox" id="heating" name="utilities" value="heating" checked>
                     <label for="heating">Heating <span id="heating-amount" class="utility-amount"></span></label><br>
 
+                    <input type="checkbox" id="electricity" name="utilities" value="electricity" checked>
+                    <label for="electricity">Electricity <span id="electricity-amount" class="utility-amount"></span></label><br>
+
                     <input type="checkbox" id="water" name="utilities" value="water" checked>
                     <label for="water">Water <span id="water-amount" class="utility-amount"></span></label><br>
 
@@ -447,6 +450,14 @@
                         amount = utilityData['heating'][bedrooms] || 0;
                     }
                     break;
+                
+                case 'electricity':
+                    if (utilityData['ELECTRICITY-other']?.['19 Single-family']) {
+                        amount = utilityData['ELECTRICITY-other']['19 Single-family'][bedrooms] || 0;
+                    } else if (utilityData['electricity']) {
+                        amount = utilityData['electricity'][bedrooms] || 0;
+                    }
+                    break;
                     
                 case 'water':
                     if (utilityData['WATER & SEWER (if metered)']?.['25 City of Cleveland']) {
@@ -485,6 +496,10 @@
             // Update heating amount
             const heatingAmount = getUtilityAmount('heating', bedrooms);
             document.getElementById('heating-amount').textContent = heatingAmount > 0 ? `($${heatingAmount.toFixed(2)})` : '';
+            
+            // Update electricity amount
+            const electricityAmount = getUtilityAmount('electricity', bedrooms);
+            document.getElementById('electricity-amount').textContent = electricityAmount > 0 ? `($${electricityAmount.toFixed(2)})` : '';
             
             // Update water amount
             const waterAmount = getUtilityAmount('water', bedrooms);
