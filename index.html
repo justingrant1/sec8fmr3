@@ -88,6 +88,12 @@
             font-size: 16px;
             width: 220px;
         }
+        .utility-amount {
+            color: #3498db;
+            font-weight: bold;
+            margin-left: 5px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -135,18 +141,18 @@
                 <input type="number" id="tenant-income" name="tenant-income" required><br><br>
 
                 <fieldset>
-                    <legend>Utility Responsibilities:</legend>
-                    <input type="checkbox" id="heating" name="utilities" value="heating">
-                    <label for="heating">Heating</label><br>
+                    <legend>Tenant is responsible for the following utilities:</legend>
+                    <input type="checkbox" id="heating" name="utilities" value="heating" checked>
+                    <label for="heating">Heating <span id="heating-amount" class="utility-amount"></span></label><br>
 
-                    <input type="checkbox" id="water" name="utilities" value="water">
-                    <label for="water">Water</label><br>
+                    <input type="checkbox" id="water" name="utilities" value="water" checked>
+                    <label for="water">Water <span id="water-amount" class="utility-amount"></span></label><br>
 
-                    <input type="checkbox" id="cooking" name="utilities" value="cooking">
-                    <label for="cooking">Cooking</label><br>
+                    <input type="checkbox" id="cooking" name="utilities" value="cooking" checked>
+                    <label for="cooking">Cooking <span id="cooking-amount" class="utility-amount"></span></label><br>
 
-                    <input type="checkbox" id="trash" name="utilities" value="trash">
-                    <label for="trash">Trash</label><br>
+                    <input type="checkbox" id="trash" name="utilities" value="trash" checked>
+                    <label for="trash">Trash <span id="trash-amount" class="utility-amount"></span></label><br>
                 </fieldset><br>
 
                 <input type="checkbox" id="no-stove" name="no-stove">
@@ -351,6 +357,11 @@
             
             // Calculate button click event
             document.getElementById('calculate-button').addEventListener('click', calculateFMR);
+            
+            // Bedroom selection change event to update utility amounts
+            document.getElementById('bedrooms').addEventListener('change', function() {
+                updateUtilityAmounts(this.value);
+            });
         }
 
         // Load county data based on selection
@@ -388,11 +399,84 @@
                 document.getElementById('fmr-form').reset();
                 document.getElementById('results').style.display = 'none';
                 
+                // Check 2-bedroom as default
+                document.getElementById('bedrooms').value = '2';
+                
+                // Update utility amounts for the default bedroom selection
+                updateUtilityAmounts('2');
+                
                 return currentCountyData;
             } catch (error) {
                 console.error('Error loading county data:', error);
                 throw error;
             }
+        }
+        
+        // Helper function to get utility amount based on type and bedroom count
+        function getUtilityAmount(utilityType, bedrooms) {
+            if (!currentCountyData.utilityAllowance) return 0;
+            
+            const utilityData = currentCountyData.utilityAllowance;
+            let amount = 0;
+            
+            switch(utilityType) {
+                case 'heating':
+                    if (utilityData['SPACE HEAT (natural gas)']?.['1 Single-family dwelling']) {
+                        amount = utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
+                    } else if (utilityData['heating']) {
+                        amount = utilityData['heating'][bedrooms] || 0;
+                    }
+                    break;
+                    
+                case 'water':
+                    if (utilityData['WATER & SEWER (if metered)']?.['25 City of Cleveland']) {
+                        amount = utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][bedrooms] || 0;
+                    } else if (utilityData['water_sewer']) {
+                        amount = utilityData['water_sewer'][bedrooms] || 0;
+                    } else if (utilityData['water']) {
+                        amount = utilityData['water'][bedrooms] || 0;
+                    }
+                    break;
+                    
+                case 'cooking':
+                    if (utilityData['COOKING']?.['17 Natural gas']) {
+                        amount = utilityData['COOKING']['17 Natural gas'][bedrooms] || 0;
+                    } else if (utilityData['cooking']) {
+                        amount = utilityData['cooking'][bedrooms] || 0;
+                    }
+                    break;
+                    
+                case 'trash':
+                    if (utilityData['TRASH']?.['33 City of Cleveland']) {
+                        amount = utilityData['TRASH']['33 City of Cleveland'][bedrooms] || 0;
+                    } else if (utilityData['trash']) {
+                        amount = utilityData['trash'][bedrooms] || 0;
+                    }
+                    break;
+            }
+            
+            return amount;
+        }
+        
+        // Update utility amount displays
+        function updateUtilityAmounts(bedrooms) {
+            if (!currentCountyData.utilityAllowance) return;
+            
+            // Update heating amount
+            const heatingAmount = getUtilityAmount('heating', bedrooms);
+            document.getElementById('heating-amount').textContent = heatingAmount > 0 ? `($${heatingAmount.toFixed(2)})` : '';
+            
+            // Update water amount
+            const waterAmount = getUtilityAmount('water', bedrooms);
+            document.getElementById('water-amount').textContent = waterAmount > 0 ? `($${waterAmount.toFixed(2)})` : '';
+            
+            // Update cooking amount
+            const cookingAmount = getUtilityAmount('cooking', bedrooms);
+            document.getElementById('cooking-amount').textContent = cookingAmount > 0 ? `($${cookingAmount.toFixed(2)})` : '';
+            
+            // Update trash amount
+            const trashAmount = getUtilityAmount('trash', bedrooms);
+            document.getElementById('trash-amount').textContent = trashAmount > 0 ? `($${trashAmount.toFixed(2)})` : '';
         }
 
         // Calculate FMR based on current data and form inputs
