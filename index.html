@@ -242,18 +242,7 @@
 
         // Populate the state dropdown with hard-coded values for reliability
         function populateStateDropdown() {
-            const stateSelect = document.getElementById('state');
-            
-            // Always use hard-coded options as the base
-            stateSelect.innerHTML = `
-                <option value="">-- Select State --</option>
-                <option value="AL">ALABAMA (AL)</option>
-                <option value="OH">OHIO (OH)</option>
-            `;
-            
-            console.log("Set hard-coded state options");
-            
-            // Still ensure our data structure has the counties even if we hard-code the dropdown
+            // Ensure data structure has counties regardless of detection
             if (!availableCounties["OH"]) {
                 availableCounties["OH"] = [{
                     name: "Cuyahoga",
@@ -267,7 +256,31 @@
                 }];
             }
             
-            console.log("Ensured county data is available for:", Object.keys(availableCounties));
+            // Get the select element
+            const stateSelect = document.getElementById('state');
+            
+            // Clear any existing options
+            stateSelect.innerHTML = '';
+            
+            // Create and append the default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '-- Select State --';
+            stateSelect.appendChild(defaultOption);
+            
+            // Create and append state options
+            const alOption = document.createElement('option');
+            alOption.value = 'AL';
+            alOption.textContent = 'ALABAMA (AL)';
+            stateSelect.appendChild(alOption);
+            
+            const ohOption = document.createElement('option');
+            ohOption.value = 'OH';
+            ohOption.textContent = 'OHIO (OH)';
+            stateSelect.appendChild(ohOption);
+            
+            console.log("Added state options using DOM methods");
+            console.log("Available states:", ["AL", "OH"]);
         }
 
         // Populate county dropdown based on state selection
