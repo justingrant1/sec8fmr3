@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "echo 'Build step complete'",
+    "vercel-build": "echo 'Vercel build step complete'"
   },
   "engines": {
     "node": ">=14.0.0"
