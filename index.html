@@ -44,30 +44,26 @@
             display: inline-block;
             margin-right: 10px;
         }
+        /* Modified dropdown styling for better compatibility */
         select {
-            padding: 10px;
-            border: 2px solid #2c3e50;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
             border-radius: 4px;
             background-color: #fff;
             min-width: 220px;
             font-size: 16px;
             margin-bottom: 15px;
             cursor: pointer;
-            appearance: menulist;
-            -webkit-appearance: menulist;
-            -moz-appearance: menulist;
+            /* Removed appearance properties that might cause issues */
         }
         select option {
-            padding: 10px;
-            background-color: #f8f9fa;
-            color: #2c3e50;
-            font-weight: normal;
-            font-size: 16px;
+            padding: 8px;
+            background-color: #fff;
+            color: #333;
         }
         select:focus {
             outline: none;
             border-color: #3498db;
-            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
         }
         button {
             background-color: #3498db;
