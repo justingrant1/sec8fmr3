@@ -208,50 +208,74 @@
         // Detect available counties from JSON files
         async function detectAvailableCounties() {
             try {
-                // Fetch list of JSON files from the server
-                const response = await fetch('list-json-files');
-                const files = await response.json();
+                console.log("Starting county detection...");
                 
-                console.log("Files detected:", files); // Debugging
+                // Hardcode the available counties for reliability
+                // This ensures the app works even if API fails
+                availableCounties = {
+                    "OH": [
+                        {
+                            name: "Cuyahoga",
+                            id: "cuyahoga_OH"
+                        }
+                    ],
+                    "AL": [
+                        {
+                            name: "Montgomery",
+                            id: "montgomery_AL"
+                        }
+                    ]
+                };
                 
-                // Parse county and state from filenames
-                files.forEach(file => {
-                    // Only process payment standards files
-                    if (file.includes('_payment_standards_2025.json')) {
-                        // Example: "cuyahoga_OH_payment_standards_2025.json"
-                        const filenameParts = file.split('_payment_standards_2025.json')[0]; // Get "cuyahoga_OH"
-                        const parts = filenameParts.split('_');
-                        
-                        // Ensure we have at least a county and state part
-                        if (parts.length >= 2) {
-                            const county = parts[0];
-                            const state = parts[1];
+                try {
+                    // Try to fetch JSON files, but continue even if this fails
+                    const response = await fetch('list-json-files');
+                    const files = await response.json();
+                    
+                    console.log("Files detected from API:", files);
+                    
+                    // Parse county and state from filenames
+                    files.forEach(file => {
+                        // Only process payment standards files
+                        if (file.includes('_payment_standards_2025.json')) {
+                            // Example: "cuyahoga_OH_payment_standards_2025.json"
+                            const filenameParts = file.split('_payment_standards_2025.json')[0]; // Get "cuyahoga_OH"
+                            const parts = filenameParts.split('_');
                             
-                            console.log(`Detected county: ${county}, state: ${state}`); // Debugging
-                            
-                            // Initialize state in availableCounties if not exists
-                            if (!availableCounties[state]) {
-                                availableCounties[state] = [];
-                            }
-                            
-                            // Add county to state if not already added
-                            if (!availableCounties[state].some(c => c.id === `${county}_${state}`)) {
-                                availableCounties[state].push({
-                                    name: county.charAt(0).toUpperCase() + county.slice(1),
-                                    id: `${county}_${state}`
-                                });
+                            // Ensure we have at least a county and state part
+                            if (parts.length >= 2) {
+                                const county = parts[0];
+                                const state = parts[1];
+                                
+                                console.log(`Detected county: ${county}, state: ${state}`);
+                                
+                                // Initialize state in availableCounties if not exists
+                                if (!availableCounties[state]) {
+                                    availableCounties[state] = [];
+                                }
+                                
+                                // Add county to state if not already added
+                                if (!availableCounties[state].some(c => c.id === `${county}_${state}`)) {
+                                    availableCounties[state].push({
+                                        name: county.charAt(0).toUpperCase() + county.slice(1),
+                                        id: `${county}_${state}`
+                                    });
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                } catch (apiError) {
+                    console.warn("API fetch failed, using hardcoded counties:", apiError);
+                }
                 
-                console.log("Available counties:", availableCounties); // Debugging
+                console.log("Final available counties:", availableCounties);
                 
                 // Populate state dropdown
                 populateStateDropdown();
             } catch (error) {
-                console.error('Error detecting counties:', error);
-                throw error;
+                console.error('Error in county detection:', error);
+                // Even if there's an error, try to populate with hardcoded values
+                populateStateDropdown();
             }
         }
 
