@@ -17,13 +17,23 @@ module.exports = (req, res) => {
     // Get the root directory where the function is being executed
     const rootDir = process.cwd();
     
+    console.log('List JSON files endpoint called at path:', req.url);
+    console.log('Current working directory:', rootDir);
+    
+    // List directory contents for debugging
+    const dirContents = fs.readdirSync(rootDir);
+    console.log('Directory contents:', dirContents);
+    
     // Read all the files in the root directory
     const files = fs.readdirSync(rootDir);
     
-    // Filter to only include JSON files
-    const jsonFiles = files.filter(file => file.endsWith('.json') && 
-                                  (file.includes('_payment_standards_') || 
-                                   file.includes('_utility_allowance_')));
+    // Filter to include JSON files for payment standards and utility allowance
+    const jsonFiles = files.filter(file => 
+        file.endsWith('.json') && 
+        (file.includes('_payment_standards_') || 
+         file.includes('_utility_allowance_')));
+    
+    console.log('Found JSON files:', jsonFiles);
     
     // Return the list of JSON files
     res.status(200).json(jsonFiles);
