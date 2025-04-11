@@ -9,7 +9,9 @@ const server = http.createServer((req, res) => {
     let filePath = '.' + decodeURIComponent(req.url);
     
     // Endpoint to list JSON files for county/state detection
-    if (filePath === './list-json-files') {
+    if (filePath === './list-json-files' || filePath === './list-json-files' || filePath === '/list-json-files') {
+        console.log("List JSON files endpoint called:", filePath);
+        
         fs.readdir('.', (err, files) => {
             if (err) {
                 res.writeHead(500);
@@ -18,6 +20,8 @@ const server = http.createServer((req, res) => {
             }
             
             const jsonFiles = files.filter(file => file.endsWith('.json'));
+            console.log("Found JSON files:", jsonFiles);
+            
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(jsonFiles));
         });

@@ -240,57 +240,34 @@
             }
         }
 
-        // Populate the state dropdown
+        // Populate the state dropdown with hard-coded values for reliability
         function populateStateDropdown() {
             const stateSelect = document.getElementById('state');
-            stateSelect.innerHTML = '<option value="">-- Select State --</option>';
             
-            // Debugging - log states found
-            console.log("States to populate:", Object.keys(availableCounties));
+            // Always use hard-coded options as the base
+            stateSelect.innerHTML = `
+                <option value="">-- Select State --</option>
+                <option value="AL">ALABAMA (AL)</option>
+                <option value="OH">OHIO (OH)</option>
+            `;
             
-            if (Object.keys(availableCounties).length === 0) {
-                console.warn("No states detected! Check file naming conventions.");
-                
-                // Fallback - add states manually if detection failed
-                if (!availableCounties["OH"]) {
-                    availableCounties["OH"] = [{
-                        name: "Cuyahoga",
-                        id: "cuyahoga_OH"
-                    }];
-                }
-                if (!availableCounties["AL"]) {
-                    availableCounties["AL"] = [{
-                        name: "Montgomery",
-                        id: "montgomery_AL"
-                    }];
-                }
+            console.log("Set hard-coded state options");
+            
+            // Still ensure our data structure has the counties even if we hard-code the dropdown
+            if (!availableCounties["OH"]) {
+                availableCounties["OH"] = [{
+                    name: "Cuyahoga",
+                    id: "cuyahoga_OH"
+                }];
+            }
+            if (!availableCounties["AL"]) {
+                availableCounties["AL"] = [{
+                    name: "Montgomery",
+                    id: "montgomery_AL"
+                }];
             }
             
-            // Directly add html option elements instead of using appendChild
-            let stateOptions = '<option value="">-- Select State --</option>';
-            
-            // Add all state options
-            Object.keys(availableCounties).sort().forEach(state => {
-                stateOptions += `<option value="${state}">${state.toUpperCase()}</option>`;
-                console.log("Added state option:", state);
-            });
-            
-            // Set the HTML all at once
-            stateSelect.innerHTML = stateOptions;
-            
-            // Hard-coded options as fallback
-            if (Object.keys(availableCounties).length < 2) {
-                console.warn("Using hard-coded fallback state options");
-                stateSelect.innerHTML = `
-                    <option value="">-- Select State --</option>
-                    <option value="AL">AL</option>
-                    <option value="OH">OH</option>
-                `;
-            }
-            
-            // Force the select to redraw
-            stateSelect.blur();
-            stateSelect.focus();
+            console.log("Ensured county data is available for:", Object.keys(availableCounties));
         }
 
         // Populate county dropdown based on state selection
