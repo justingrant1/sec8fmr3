@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section 8 FMR Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        fieldset {
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .results {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .approved {
+            color: green;
+            font-weight: bold;
+        }
+        .denied {
+            color: red;
+            font-weight: bold;
+        }
+        .loading {
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        .selection-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Section 8 FMR Calculator</h1>
+
+    <div class="selection-group">
+        <label for="state">Select State:</label>
+        <select id="state" name="state">
+            <option value="">-- Select State --</option>
+            <!-- States will be populated automatically -->
+        </select>
+    </div>
+
+    <div class="selection-group" id="county-selector" style="display: none;">
+        <label for="county">Select County:</label>
+        <select id="county" name="county">
+            <option value="">-- Select County --</option>
+            <!-- Counties will be populated based on state selection -->
+        </select>
+    </div>
+
+    <div id="calculator-container">
+        <div id="loading-message" class="loading" style="display: none;">Loading data...</div>
+        
+        <div id="calculator-form" style="display: none;">
+            <h2 id="county-state-header"></h2>
+            
+            <form id="fmr-form">
+                <label for="zip-code">Zip Code:</label>
+                <input type="text" id="zip-code" name="zip-code" required><br><br>
+
+                <label for="bedrooms">Number of Bedrooms:</label>
+                <select id="bedrooms" name="bedrooms">
+                    <option value="0">Studio</option>
+                    <option value="1">1 Bedroom</option>
+                    <option value="2">2 Bedrooms</option>
+                    <option value="3">3 Bedrooms</option>
+                    <option value="4">4 Bedrooms</option>
+                </select><br><br>
+
+                <label for="proposed-rent">Proposed Rent:</label>
+                <input type="number" id="proposed-rent" name="proposed-rent" required><br><br>
+
+                <label for="tenant-income">Tenant Monthly Income:</label>
+                <input type="number" id="tenant-income" name="tenant-income" required><br><br>
+
+                <fieldset>
+                    <legend>Utility Responsibilities:</legend>
+                    <input type="checkbox" id="heating" name="utilities" value="heating">
+                    <label for="heating">Heating</label><br>
+
+                    <input type="checkbox" id="water" name="utilities" value="water">
+                    <label for="water">Water</label><br>
+
+                    <input type="checkbox" id="cooking" name="utilities" value="cooking">
+                    <label for="cooking">Cooking</label><br>
+
+                    <input type="checkbox" id="trash" name="utilities" value="trash">
+                    <label for="trash">Trash</label><br>
+                </fieldset><br>
+
+                <input type="checkbox" id="no-stove" name="no-stove">
+                <label for="no-stove">No Stove</label><br><br>
+
+                <input type="checkbox" id="no-refrigerator" name="no-refrigerator">
+                <label for="no-refrigerator">No Refrigerator</label><br><br>
+
+                <button type="button" id="calculate-button">Calculate</button>
+            </form>
+
+            <div id="results" class="results" style="margin-top: 20px; display: none;">
+                <h3>Calculation Results:</h3>
+                <p>Gross FMR: <span id="gross-fmr"></span></p>
+                <p>Utility Deduction: <span id="utility-deduction"></span></p>
+                <p>Net FMR: <span id="net-fmr"></span></p>
+                <p>Proposed Rent: <span id="proposed-rent-display"></span></p>
+                <p>Max Allowed Rent (110% Gross FMR): <span id="max-allowed"></span></p>
+                <p>Tenant 30% Share: <span id="tenant-share"></span></p>
+                <p><strong>Recommended RFTA Rent Amount: <span id="recommended-rent"></span></strong></p>
+                <p>Status: <span id="status"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store loaded data
+        let availableCounties = {};
+        let currentCountyData = {
+            paymentStandards: null,
+            utilityAllowance: null
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await detectAvailableCounties();
+                setupEventListeners();
+            } catch (error) {
+                console.error('Error initializing application:', error);
+            }
+        });
+
+        // Detect available counties from JSON files
+        async function detectAvailableCounties() {
+            try {
+                // Fetch list of JSON files from the server
+                const response = await fetch('list-json-files');
+                const files = await response.json();
+                
+                // Parse county and state from filenames
+                files.forEach(file => {
+                    if (file.includes('_payment_standards_2025.json')) {
+                        // Extract county and state from filename
+                        const parts = file.split('_');
+                        // First part is county, second part is state
+                        if (parts.length >= 3) {
+                            const county = parts[0];
+                            const state = parts[1];
+                            
+                            // Initialize state in availableCounties if not exists
+                            if (!availableCounties[state]) {
+                                availableCounties[state] = [];
+                            }
+                            
+                            // Add county to state if not already added
+                            if (!availableCounties[state].some(c => c.id === `${county}_${state}`)) {
+                                availableCounties[state].push({
+                                    name: county.charAt(0).toUpperCase() + county.slice(1),
+                                    id: `${county}_${state}`
+                                });
+                            }
+                        }
+                    }
+                });
+                
+                // Populate state dropdown
+                populateStateDropdown();
+            } catch (error) {
+                console.error('Error detecting counties:', error);
+                throw error;
+            }
+        }
+
+        // Populate the state dropdown
+        function populateStateDropdown() {
+            const stateSelect = document.getElementById('state');
+            stateSelect.innerHTML = '<option value="">-- Select State --</option>';
+            
+            Object.keys(availableCounties).sort().forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state.toUpperCase();
+                stateSelect.appendChild(option);
+            });
+        }
+
+        // Populate county dropdown based on state selection
+        function populateCountyDropdown(state) {
+            const countySelect = document.getElementById('county');
+            countySelect.innerHTML = '<option value="">-- Select County --</option>';
+            
+            if (state && availableCounties[state]) {
+                availableCounties[state].sort((a, b) => a.name.localeCompare(b.name)).forEach(county => {
+                    const option = document.createElement('option');
+                    option.value = county.id;
+                    option.textContent = county.name;
+                    countySelect.appendChild(option);
+                });
+                
+                document.getElementById('county-selector').style.display = 'block';
+            } else {
+                document.getElementById('county-selector').style.display = 'none';
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // State selection change event
+            document.getElementById('state').addEventListener('change', function() {
+                const selectedState = this.value;
+                populateCountyDropdown(selectedState);
+                
+                // Hide calculator form when state changes
+                document.getElementById('calculator-form').style.display = 'none';
+            });
+            
+            // County selection change event
+            document.getElementById('county').addEventListener('change', async function() {
+                const selectedCounty = this.value;
+                
+                if (selectedCounty) {
+                    // Show loading message
+                    document.getElementById('loading-message').style.display = 'block';
+                    document.getElementById('calculator-form').style.display = 'none';
+                    
+                    // Load county data
+                    try {
+                        await loadCountyData(selectedCounty);
+                        
+                        // Hide loading, show form
+                        document.getElementById('loading-message').style.display = 'none';
+                        document.getElementById('calculator-form').style.display = 'block';
+                    } catch (error) {
+                        console.error('Error loading county data:', error);
+                        document.getElementById('loading-message').textContent = 'Error loading data. Please refresh and try again.';
+                    }
+                } else {
+                    // Hide calculator form when no county is selected
+                    document.getElementById('calculator-form').style.display = 'none';
+                    document.getElementById('loading-message').style.display = 'none';
+                }
+            });
+            
+            // Calculate button click event
+            document.getElementById('calculate-button').addEventListener('click', calculateFMR);
+        }
+
+        // Load county data based on selection
+        async function loadCountyData(countyId) {
+            try {
+                // Split the county ID to get county and state
+                const [county, state] = countyId.split('_');
+                
+                // Construct filenames based on naming convention
+                const paymentStandardsFile = `${county}_${state}_payment_standards_2025.json`;
+                const utilityAllowanceFile = `${county}_${state}_utility_allowance_2025.json`;
+                
+                // Load both files simultaneously
+                const [paymentStandardsResponse, utilityAllowanceResponse] = await Promise.all([
+                    fetch(paymentStandardsFile),
+                    fetch(utilityAllowanceFile)
+                ]);
+                
+                const paymentStandards = await paymentStandardsResponse.json();
+                const utilityAllowance = await utilityAllowanceResponse.json();
+                
+                // Store data for later use
+                currentCountyData = {
+                    paymentStandards,
+                    utilityAllowance,
+                    county,
+                    state
+                };
+                
+                // Update header with formatted county and state
+                document.getElementById('county-state-header').textContent = 
+                    `${county.charAt(0).toUpperCase() + county.slice(1)}, ${state.toUpperCase()}`;
+                
+                // Reset form and results
+                document.getElementById('fmr-form').reset();
+                document.getElementById('results').style.display = 'none';
+                
+                return currentCountyData;
+            } catch (error) {
+                console.error('Error loading county data:', error);
+                throw error;
+            }
+        }
+
+        // Calculate FMR based on current data and form inputs
+        function calculateFMR() {
+            // Get form values
+            const zip = document.getElementById('zip-code').value;
+            const bedrooms = document.getElementById('bedrooms').value;
+            const proposedRent = parseFloat(document.getElementById('proposed-rent').value);
+            const tenantIncome = parseFloat(document.getElementById('tenant-income').value);
+            const heating = document.getElementById('heating').checked;
+            const water = document.getElementById('water').checked;
+            const cooking = document.getElementById('cooking').checked;
+            const trash = document.getElementById('trash').checked;
+            const noStove = document.getElementById('no-stove').checked;
+            const noRefrigerator = document.getElementById('no-refrigerator').checked;
+            
+            if (!currentCountyData.paymentStandards || !currentCountyData.utilityAllowance) {
+                alert('County data not loaded. Please select a county first.');
+                return;
+            }
+            
+            // Calculate utility deduction based on selected utilities
+            let utilityDeduction = 0;
+            const utilityData = currentCountyData.utilityAllowance;
+            
+            // Try different utility data formats (flexible handling)
+            if (heating) {
+                // First, try the more specific format (Cuyahoga style)
+                if (utilityData['SPACE HEAT (natural gas)']?.['1 Single-family dwelling']) {
+                    utilityDeduction += utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
+                } 
+                // Then try the simpler format (Montgomery style)
+                else if (utilityData['heating']) {
+                    utilityDeduction += utilityData['heating'][bedrooms] || 0;
+                }
+            }
+            
+            if (water) {
+                if (utilityData['WATER & SEWER (if metered)']?.['25 City of Cleveland']) {
+                    utilityDeduction += utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][bedrooms] || 0;
+                } else if (utilityData['water_sewer']) {
+                    utilityDeduction += utilityData['water_sewer'][bedrooms] || 0;
+                } else if (utilityData['water']) {
+                    utilityDeduction += utilityData['water'][bedrooms] || 0;
+                }
+            }
+            
+            if (cooking) {
+                if (utilityData['COOKING']?.['17 Natural gas']) {
+                    utilityDeduction += utilityData['COOKING']['17 Natural gas'][bedrooms] || 0;
+                } else if (utilityData['cooking']) {
+                    utilityDeduction += utilityData['cooking'][bedrooms] || 0;
+                }
+            }
+            
+            if (trash) {
+                if (utilityData['TRASH']?.['33 City of Cleveland']) {
+                    utilityDeduction += utilityData['TRASH']['33 City of Cleveland'][bedrooms] || 0;
+                } else if (utilityData['trash']) {
+                    utilityDeduction += utilityData['trash'][bedrooms] || 0;
+                }
+            }
+            
+            // Add electricity and water heating if tenant pays any utilities
+            if (heating || water || cooking || trash) {
+                // Electricity
+                if (utilityData['ELECTRICITY-other']?.['19 Single-family']) {
+                    utilityDeduction += utilityData['ELECTRICITY-other']['19 Single-family'][bedrooms] || 0;
+                } else if (utilityData['electricity']) {
+                    utilityDeduction += utilityData['electricity'][bedrooms] || 0;
+                }
+                
+                // Water heating
+                if (utilityData['DOMESTIC WATER HEATING']?.['16 Electricity']) {
+                    utilityDeduction += utilityData['DOMESTIC WATER HEATING']['16 Electricity'][bedrooms] || 0;
+                } else if (utilityData['water_heating']) {
+                    utilityDeduction += utilityData['water_heating'][bedrooms] || 0;
+                }
+            }
+            
+            // Appliances
+            if (noStove) {
+                if (utilityData['APPLIANCES (if not owner-furnished)']?.['31 Range']) {
+                    utilityDeduction += utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][bedrooms] || 0;
+                } else if (utilityData['stove']) {
+                    utilityDeduction += utilityData['stove'][bedrooms] || 0;
+                }
+            }
+            
+            if (noRefrigerator) {
+                if (utilityData['APPLIANCES (if not owner-furnished)']?.['32 Refrigerator']) {
+                    utilityDeduction += utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][bedrooms] || 0;
+                } else if (utilityData['refrigerator']) {
+                    utilityDeduction += utilityData['refrigerator'][bedrooms] || 0;
+                }
+            }
+            
+            // Calculate FMR values
+            const grossFMR = currentCountyData.paymentStandards[zip]?.[bedrooms] || 0;
+            const netFMR = grossFMR - utilityDeduction;
+            const maxAllowedRent = grossFMR * 1.10;
+            const tenantShare = tenantIncome * 0.30;
+            const overage = proposedRent - netFMR;
+            const maxOverageAllowed = tenantIncome * 0.1;
+            
+            // Calculate the recommended RFTA rent amount
+            // This is the maximum amount that would be approved, calculated as the higher of:
+            // 1. netFMR (direct approval), or
+            // 2. The minimum of maxAllowedRent and (netFMR + maxOverageAllowed)
+            const extraAllowanceAmount = netFMR + maxOverageAllowed;
+            const limitedByMaxAllowed = Math.min(maxAllowedRent, extraAllowanceAmount);
+            // Take the higher of the two approval paths, but subtract $1 to be just under the denial threshold
+            const recommendedRent = Math.max(netFMR, limitedByMaxAllowed) - 1;
+            
+            // Determine approval status
+            let status = 'DENIED';
+            if (proposedRent <= netFMR) {
+                status = 'APPROVED';
+            } else if (proposedRent <= maxAllowedRent && overage <= maxOverageAllowed) {
+                status = 'Approved with Tenant Paying Extra';
+            }
+            
+            // Display results
+            document.getElementById('gross-fmr').textContent = '$' + grossFMR.toFixed(2);
+            document.getElementById('utility-deduction').textContent = '$' + utilityDeduction.toFixed(2);
+            document.getElementById('net-fmr').textContent = '$' + netFMR.toFixed(2);
+            document.getElementById('proposed-rent-display').textContent = '$' + proposedRent.toFixed(2);
+            document.getElementById('max-allowed').textContent = '$' + maxAllowedRent.toFixed(2);
+            document.getElementById('tenant-share').textContent = '$' + tenantShare.toFixed(2);
+            document.getElementById('recommended-rent').textContent = '$' + recommendedRent.toFixed(2);
+            
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = status;
+            statusElement.className = status === 'DENIED' ? 'denied' : 'approved';
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

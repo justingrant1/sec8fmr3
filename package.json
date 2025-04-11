@@ -1,0 +1,22 @@
+{
+  "name": "fmr-calculator",
+  "version": "1.0.0",
+  "description": "Section 8 FMR Calculator for multiple counties",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "section8",
+    "fmr",
+    "calculator",
+    "housing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}

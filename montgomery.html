@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montgomery FMR Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        fieldset {
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .results {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .approved {
+            color: green;
+            font-weight: bold;
+        }
+        .denied {
+            color: red;
+            font-weight: bold;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">← Back to county selection</a>
+    <h2>Montgomery, AL</h2>
+
+    <form id="fmr-form-montgomery">
+        <label for="zip-montgomery">Zip Code:</label>
+        <input type="text" id="zip-montgomery" name="zip-montgomery" required><br><br>
+
+        <label for="bedrooms-montgomery">Number of Bedrooms:</label>
+        <select id="bedrooms-montgomery" name="bedrooms-montgomery">
+            <option value="0">Studio</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3 Bedrooms</option>
+            <option value="4">4 Bedrooms</option>
+        </select><br><br>
+
+        <label for="proposed-rent-montgomery">Proposed Rent:</label>
+        <input type="number" id="proposed-rent-montgomery" name="proposed-rent-montgomery" required><br><br>
+
+        <label for="tenant-income-montgomery">Tenant Monthly Income:</label>
+        <input type="number" id="tenant-income-montgomery" name="tenant-income-montgomery" required><br><br>
+
+        <fieldset>
+            <legend>Utility Responsibilities:</legend>
+            <input type="checkbox" id="heating-montgomery" name="utilities-montgomery" value="heating">
+            <label for="heating-montgomery">Heating</label><br>
+
+            <input type="checkbox" id="water-montgomery" name="utilities-montgomery" value="water">
+            <label for="water-montgomery">Water</label><br>
+
+            <input type="checkbox" id="cooking-montgomery" name="utilities-montgomery" value="cooking">
+            <label for="cooking-montgomery">Cooking</label><br>
+
+            <input type="checkbox" id="trash-montgomery" name="utilities-montgomery" value="trash">
+            <label for="trash-montgomery">Trash</label><br>
+        </fieldset><br>
+
+        <input type="checkbox" id="no-stove-montgomery" name="no-stove-montgomery">
+        <label for="no-stove-montgomery">No Stove</label><br><br>
+
+        <input type="checkbox" id="no-refrigerator-montgomery" name="no-refrigerator-montgomery">
+        <label for="no-refrigerator-montgomery">No Refrigerator</label><br><br>
+
+        <button type="button" id="calculate-montgomery">Calculate</button>
+    </form>
+
+    <div id="results-montgomery" class="results" style="margin-top: 20px; display: none;">
+        <h3>Calculation Results:</h3>
+        <p>Gross FMR: <span id="gross-fmr-montgomery"></span></p>
+        <p>Utility Deduction: <span id="utility-deduction-montgomery"></span></p>
+        <p>Net FMR: <span id="net-fmr-montgomery"></span></p>
+        <p>Proposed Rent: <span id="proposed-rent-display-montgomery"></span></p>
+        <p>Max Allowed Rent (110% Gross FMR): <span id="max-allowed-montgomery"></span></p>
+        <p>Tenant 30% Share: <span id="tenant-share-montgomery"></span></p>
+        <p><strong>Recommended RFTA Rent Amount: <span id="recommended-rent-montgomery"></span></strong></p>
+        <p>Status: <span id="status-montgomery"></span></p>
+    </div>
+
+    <script>
+        // FMR data for Montgomery, AL (Effective January 1, 2025)
+        const fmrDataMontgomery = {
+            '36008': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36013': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36025': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36043': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36052': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36057': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36064': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36066': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36067': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36068': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36093': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273},
+            '36106': {'0': 924, '1': 977, '2': 1155, '3': 1470, '4': 1827, '5': 2101, '6': 2375},
+            '36109': {'0': 903, '1': 945, '2': 1124, '3': 1428, '4': 1775, '5': 2041, '6': 2307},
+            '36112': {'0': 1145, '1': 1250, '2': 1502, '3': 1890, '4': 2394, '5': 2753, '6': 3112},
+            '36113': {'0': 1334, '1': 1397, '2': 1659, '3': 2111, '4': 2615, '5': 3007, '6': 3399},
+            '36115': {'0': 1271, '1': 1334, '2': 1586, '3': 2027, '4': 2499, '5': 2874, '6': 3249},
+            '36117': {'0': 1050, '1': 1092, '2': 1302, '3': 1659, '4': 2058, '5': 2367, '6': 2675},
+            '36775': {'0': 914, '1': 966, '2': 1239, '3': 1628, '4': 1701, '5': 1956, '6': 2211},
+            'Other': {'0': 890, '1': 932, '2': 1108, '3': 1412, '4': 1748, '5': 2010, '6': 2273}, // For all other zip codes
+        };
+
+        // Utility allowance data for Montgomery, AL (monthly values)
+        const utilityAllowanceMontgomery = {
+            'heating': {'0': 23, '1': 27, '2': 33, '3': 37, '4': 44}, // Natural Gas
+            'cooking': {'0': 10, '1': 11, '2': 13, '3': 14, '4': 15}, // Natural Gas
+            'water_heating': {'0': 13, '1': 17, '2': 21, '3': 29, '4': 37}, // Natural Gas
+            'water': {'0': 45, '1': 48, '2': 48, '3': 68, '4': 92}, // Montgomery Water (Sewer included)
+            'trash': {'0': 27, '1': 27, '2': 27, '3': 27, '4': 27}, // Montgomery Trash
+            'electricity': {'0': 55, '1': 59, '2': 65, '3': 75, '4': 84}, // Other Electric - AL Power
+            'stove': {'0': 4, '1': 4, '2': 4, '3': 4, '4': 4}, // Range
+            'refrigerator': {'0': 6, '1': 6, '2': 6, '3': 6, '4': 6} // Refrigerator
+        };
+
+        // Set up event listener for calculate button
+        document.getElementById('calculate-montgomery').addEventListener('click', calculateMontgomeryFMR);
+
+        function calculateMontgomeryFMR() {
+            const zip = document.getElementById('zip-montgomery').value;
+            const bedrooms = document.getElementById('bedrooms-montgomery').value;
+            const proposedRent = parseFloat(document.getElementById('proposed-rent-montgomery').value);
+            const tenantIncome = parseFloat(document.getElementById('tenant-income-montgomery').value);
+            let utilityDeduction = 0;
+            let heating = document.getElementById('heating-montgomery').checked;
+            let water = document.getElementById('water-montgomery').checked;
+            let cooking = document.getElementById('cooking-montgomery').checked;
+            let trash = document.getElementById('trash-montgomery').checked;
+            let noStove = document.getElementById('no-stove-montgomery').checked;
+            let noRefrigerator = document.getElementById('no-refrigerator-montgomery').checked;
+
+            // Using Natural Gas for heating/cooking/water heating, Montgomery rates for water/trash, AL Power for other electric
+            if (heating) utilityDeduction += utilityAllowanceMontgomery['heating']?.[bedrooms] || 0;
+            if (water) {
+                utilityDeduction += utilityAllowanceMontgomery['water']?.[bedrooms] || 0; // Water + Sewer
+                utilityDeduction += utilityAllowanceMontgomery['water_heating']?.[bedrooms] || 0; // Add water heating
+            }
+            if (cooking) utilityDeduction += utilityAllowanceMontgomery['cooking']?.[bedrooms] || 0;
+            if (trash) utilityDeduction += utilityAllowanceMontgomery['trash']?.[bedrooms] || 0;
+
+            // Add deduction for electricity (other) if tenant pays
+            if (heating || water || cooking || trash) {
+                utilityDeduction += utilityAllowanceMontgomery['electricity']?.[bedrooms] || 0;
+            }
+
+            if (noStove) utilityDeduction += utilityAllowanceMontgomery['stove']?.[bedrooms] || 0;
+            if (noRefrigerator) utilityDeduction += utilityAllowanceMontgomery['refrigerator']?.[bedrooms] || 0;
+
+            const grossFMR = fmrDataMontgomery[zip]?.[bedrooms] || fmrDataMontgomery['Other']?.[bedrooms] || 0;
+            const netFMR = grossFMR - utilityDeduction;
+            const maxAllowedRent = grossFMR * 1.10;
+            const tenantShare = tenantIncome * 0.30;
+            const overage = proposedRent - netFMR;
+            const maxOverageAllowed = tenantIncome * 0.1;
+            
+            // Calculate the recommended RFTA rent amount
+            // This is the maximum amount that would be approved, calculated as the higher of:
+            // 1. netFMR (direct approval), or
+            // 2. The minimum of maxAllowedRent and (netFMR + maxOverageAllowed)
+            const extraAllowanceAmount = netFMR + maxOverageAllowed;
+            const limitedByMaxAllowed = Math.min(maxAllowedRent, extraAllowanceAmount);
+            // Take the higher of the two approval paths, but subtract $1 to be just under the denial threshold
+            const recommendedRent = Math.max(netFMR, limitedByMaxAllowed) - 1;
+
+            let status = 'DENIED';
+            if (proposedRent <= netFMR) {
+                status = 'APPROVED';
+            } else if (proposedRent <= maxAllowedRent && overage <= maxOverageAllowed) {
+                status = 'Approved with Tenant Paying Extra';
+            }
+
+            document.getElementById('gross-fmr-montgomery').textContent = '$' + grossFMR.toFixed(2);
+            document.getElementById('utility-deduction-montgomery').textContent = '$' + utilityDeduction.toFixed(2);
+            document.getElementById('net-fmr-montgomery').textContent = '$' + netFMR.toFixed(2);
+            document.getElementById('proposed-rent-display-montgomery').textContent = '$' + proposedRent.toFixed(2);
+            document.getElementById('max-allowed-montgomery').textContent = '$' + maxAllowedRent.toFixed(2);
+            document.getElementById('tenant-share-montgomery').textContent = '$' + tenantShare.toFixed(2);
+            document.getElementById('recommended-rent-montgomery').textContent = '$' + recommendedRent.toFixed(2);
+            
+            const statusElement = document.getElementById('status-montgomery');
+            statusElement.textContent = status;
+            statusElement.className = status === 'DENIED' ? 'denied' : 'approved';
+            
+            // Show results
+            document.getElementById('results-montgomery').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

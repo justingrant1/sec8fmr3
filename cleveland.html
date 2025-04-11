@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleveland FMR Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        fieldset {
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .results {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .approved {
+            color: green;
+            font-weight: bold;
+        }
+        .denied {
+            color: red;
+            font-weight: bold;
+        }
+        .loading {
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">← Back to county selection</a>
+    <h2>Cleveland, OH</h2>
+    <div id="loading-cleveland" class="loading">Loading data...</div>
+    <form id="fmr-form-cleveland" style="display: none;">
+        <label for="zip-cleveland">Zip Code:</label>
+        <input type="text" id="zip-cleveland" name="zip-cleveland" required><br><br>
+
+        <label for="bedrooms-cleveland">Number of Bedrooms:</label>
+        <select id="bedrooms-cleveland" name="bedrooms-cleveland">
+            <option value="0">Studio</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3 Bedrooms</option>
+            <option value="4">4 Bedrooms</option>
+        </select><br><br>
+
+        <label for="proposed-rent-cleveland">Proposed Rent:</label>
+        <input type="number" id="proposed-rent-cleveland" name="proposed-rent-cleveland" required><br><br>
+
+        <label for="tenant-income-cleveland">Tenant Monthly Income:</label>
+        <input type="number" id="tenant-income-cleveland" name="tenant-income-cleveland" required><br><br>
+
+        <fieldset>
+            <legend>Utility Responsibilities:</legend>
+            <input type="checkbox" id="heating-cleveland" name="utilities-cleveland" value="heating">
+            <label for="heating-cleveland">Heating</label><br>
+
+            <input type="checkbox" id="water-cleveland" name="utilities-cleveland" value="water">
+            <label for="water-cleveland">Water</label><br>
+
+            <input type="checkbox" id="cooking-cleveland" name="utilities-cleveland" value="cooking">
+            <label for="cooking-cleveland">Cooking</label><br>
+
+            <input type="checkbox" id="trash-cleveland" name="utilities-cleveland" value="trash">
+            <label for="trash-cleveland">Trash</label><br>
+        </fieldset><br>
+
+        <input type="checkbox" id="no-stove-cleveland" name="no-stove-cleveland">
+        <label for="no-stove-cleveland">No Stove</label><br><br>
+
+        <input type="checkbox" id="no-refrigerator-cleveland" name="no-refrigerator-cleveland">
+        <label for="no-refrigerator-cleveland">No Refrigerator</label><br><br>
+
+        <button type="button" id="calculate-cleveland">Calculate</button>
+    </form>
+
+    <div id="results-cleveland" class="results" style="margin-top: 20px; display: none;">
+        <h3>Calculation Results:</h3>
+        <p>Gross FMR: <span id="gross-fmr-cleveland"></span></p>
+        <p>Utility Deduction: <span id="utility-deduction-cleveland"></span></p>
+        <p>Net FMR: <span id="net-fmr-cleveland"></span></p>
+        <p>Proposed Rent: <span id="proposed-rent-display-cleveland"></span></p>
+        <p>Max Allowed Rent (110% Gross FMR): <span id="max-allowed-cleveland"></span></p>
+        <p>Tenant 30% Share: <span id="tenant-share-cleveland"></span></p>
+        <p><strong>Recommended RFTA Rent Amount: <span id="recommended-rent-cleveland"></span></strong></p>
+        <p>Status: <span id="status-cleveland"></span></p>
+    </div>
+
+    <script>
+        // Data objects that will be populated from JSON files
+        let paymentStandardsCleveland = {};
+        let utilityAllowanceCleveland = {};
+        
+        // Load the JSON data for Cleveland
+        async function loadClevelandData() {
+            try {
+                // Load payment standards
+                const paymentStandardsResponse = await fetch('cuyahoga county OH_payment_standards.json');
+                paymentStandardsCleveland = await paymentStandardsResponse.json();
+                
+                // Create utility allowance object from the complex structure
+                const utilityAllowanceResponse = await fetch('cuyahoga county OH_utility_allowance_2025.json');
+                const utilityData = await utilityAllowanceResponse.json();
+                
+                // Extract the needed utility values into a simpler structure
+                utilityAllowanceCleveland = {
+                    'heating': {'0': utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][0], 
+                                '1': utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][1], 
+                                '2': utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][2], 
+                                '3': utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][3], 
+                                '4': utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][4]},
+                    
+                    'water_heating': {'0': utilityData['DOMESTIC WATER HEATING']['16 Electricity'][0], 
+                                      '1': utilityData['DOMESTIC WATER HEATING']['16 Electricity'][1], 
+                                      '2': utilityData['DOMESTIC WATER HEATING']['16 Electricity'][2], 
+                                      '3': utilityData['DOMESTIC WATER HEATING']['16 Electricity'][3], 
+                                      '4': utilityData['DOMESTIC WATER HEATING']['16 Electricity'][4]},
+                    
+                    'cooking': {'0': utilityData['COOKING']['17 Natural gas'][0], 
+                                '1': utilityData['COOKING']['17 Natural gas'][1], 
+                                '2': utilityData['COOKING']['17 Natural gas'][2], 
+                                '3': utilityData['COOKING']['17 Natural gas'][3], 
+                                '4': utilityData['COOKING']['17 Natural gas'][4]},
+                    
+                    'trash': {'0': utilityData['TRASH']['33 City of Cleveland'][0], 
+                              '1': utilityData['TRASH']['33 City of Cleveland'][1], 
+                              '2': utilityData['TRASH']['33 City of Cleveland'][2], 
+                              '3': utilityData['TRASH']['33 City of Cleveland'][3], 
+                              '4': utilityData['TRASH']['33 City of Cleveland'][4]},
+                    
+                    'electricity': {'0': utilityData['ELECTRICITY-other']['19 Single-family'][0], 
+                                    '1': utilityData['ELECTRICITY-other']['19 Single-family'][1], 
+                                    '2': utilityData['ELECTRICITY-other']['19 Single-family'][2], 
+                                    '3': utilityData['ELECTRICITY-other']['19 Single-family'][3], 
+                                    '4': utilityData['ELECTRICITY-other']['19 Single-family'][4]},
+                    
+                    'water_sewer': {'0': utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][0], 
+                                    '1': utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][1], 
+                                    '2': utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][2], 
+                                    '3': utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][3], 
+                                    '4': utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][4]},
+                    
+                    'stove': {'0': utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][0], 
+                              '1': utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][1], 
+                              '2': utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][2], 
+                              '3': utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][3], 
+                              '4': utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][4]},
+                    
+                    'refrigerator': {'0': utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][0], 
+                                     '1': utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][1], 
+                                     '2': utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][2], 
+                                     '3': utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][3], 
+                                     '4': utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][4]}
+                };
+                
+                // Show the form once data is loaded
+                document.getElementById('loading-cleveland').style.display = 'none';
+                document.getElementById('fmr-form-cleveland').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading Cleveland data:', error);
+                document.getElementById('loading-cleveland').textContent = 'Error loading data. Please refresh and try again.';
+            }
+        }
+
+        // Load data on page load
+        loadClevelandData();
+
+        // Set up event listener for calculate button
+        document.getElementById('calculate-cleveland').addEventListener('click', calculateClevelandFMR);
+
+        function calculateClevelandFMR() {
+            const zip = document.getElementById('zip-cleveland').value;
+            const bedrooms = document.getElementById('bedrooms-cleveland').value;
+            const proposedRent = parseFloat(document.getElementById('proposed-rent-cleveland').value);
+            const tenantIncome = parseFloat(document.getElementById('tenant-income-cleveland').value);
+            let utilityDeduction = 0;
+            let heating = document.getElementById('heating-cleveland').checked;
+            let water = document.getElementById('water-cleveland').checked;
+            let cooking = document.getElementById('cooking-cleveland').checked;
+            let trash = document.getElementById('trash-cleveland').checked;
+            let noStove = document.getElementById('no-stove-cleveland').checked;
+            let noRefrigerator = document.getElementById('no-refrigerator-cleveland').checked;
+
+            // Calculate utility deductions based on the loaded JSON data
+            if (heating) utilityDeduction += utilityAllowanceCleveland['heating']?.[bedrooms] || 0;
+            if (water) utilityDeduction += utilityAllowanceCleveland['water_sewer']?.[bedrooms] || 0;
+            if (cooking) utilityDeduction += utilityAllowanceCleveland['cooking']?.[bedrooms] || 0;
+            if (trash) utilityDeduction += utilityAllowanceCleveland['trash']?.[bedrooms] || 0;
+
+            // Add electricity and water heating if tenant pays any utilities
+            if (heating || water || cooking || trash) {
+                utilityDeduction += utilityAllowanceCleveland['electricity']?.[bedrooms] || 0;
+                utilityDeduction += utilityAllowanceCleveland['water_heating']?.[bedrooms] || 0;
+            }
+
+            if (noStove) utilityDeduction += utilityAllowanceCleveland['stove']?.[bedrooms] || 0;
+            if (noRefrigerator) utilityDeduction += utilityAllowanceCleveland['refrigerator']?.[bedrooms] || 0;
+
+            const grossFMR = paymentStandardsCleveland[zip]?.[bedrooms] || 0;
+            const netFMR = grossFMR - utilityDeduction;
+            const maxAllowedRent = grossFMR * 1.10;
+            const tenantShare = tenantIncome * 0.30;
+            const overage = proposedRent - netFMR;
+            const maxOverageAllowed = tenantIncome * 0.1;
+            
+            // Calculate the recommended RFTA rent amount
+            // This is the maximum amount that would be approved, calculated as the higher of:
+            // 1. netFMR (direct approval), or
+            // 2. The minimum of maxAllowedRent and (netFMR + maxOverageAllowed)
+            const extraAllowanceAmount = netFMR + maxOverageAllowed;
+            const limitedByMaxAllowed = Math.min(maxAllowedRent, extraAllowanceAmount);
+            // Take the higher of the two approval paths, but subtract $1 to be just under the denial threshold
+            const recommendedRent = Math.max(netFMR, limitedByMaxAllowed) - 1;
+
+            let status = 'DENIED';
+            if (proposedRent <= netFMR) {
+                status = 'APPROVED';
+            } else if (proposedRent <= maxAllowedRent && overage <= maxOverageAllowed) {
+                status = 'Approved with Tenant Paying Extra';
+            }
+
+            document.getElementById('gross-fmr-cleveland').textContent = '$' + grossFMR.toFixed(2);
+            document.getElementById('utility-deduction-cleveland').textContent = '$' + utilityDeduction.toFixed(2);
+            document.getElementById('net-fmr-cleveland').textContent = '$' + netFMR.toFixed(2);
+            document.getElementById('proposed-rent-display-cleveland').textContent = '$' + proposedRent.toFixed(2);
+            document.getElementById('max-allowed-cleveland').textContent = '$' + maxAllowedRent.toFixed(2);
+            document.getElementById('tenant-share-cleveland').textContent = '$' + tenantShare.toFixed(2);
+            document.getElementById('recommended-rent-cleveland').textContent = '$' + recommendedRent.toFixed(2);
+            
+            const statusElement = document.getElementById('status-cleveland');
+            statusElement.textContent = status;
+            statusElement.className = status === 'DENIED' ? 'denied' : 'approved';
+            
+            // Show results
+            document.getElementById('results-cleveland').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

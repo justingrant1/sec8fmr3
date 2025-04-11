@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section 8 FMR Calculator Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Section 8 FMR Calculator Debug</h1>
+    
+    <button id="debug-btn">Test State Selection</button>
+    <div id="debug-output"></div>
+
+    <script>
+        const debugOutput = document.getElementById('debug-output');
+        const debugBtn = document.getElementById('debug-btn');
+        
+        debugBtn.addEventListener('click', async function() {
+            debugOutput.innerHTML = "<p>Starting debug tests...</p>";
+            
+            try {
+                // Test loading of JSON files
+                debugOutput.innerHTML += "<p>Testing Cuyahoga County payment standards file...</p>";
+                
+                try {
+                    const paymentStandardsResponse = await fetch('cuyahoga county OH_payment_standards_2025.json');
+                    const paymentData = await paymentStandardsResponse.json();
+                    debugOutput.innerHTML += `<p style="color:green">✓ Payment standards file loaded successfully. Found ${Object.keys(paymentData).length} zip codes.</p>`;
+                } catch (error) {
+                    debugOutput.innerHTML += `<p style="color:red">✗ Error loading payment standards: ${error.message}</p>`;
+                }
+                
+                try {
+                    debugOutput.innerHTML += "<p>Testing Cuyahoga County utility allowance file...</p>";
+                    const utilityAllowanceResponse = await fetch('cuyahoga county OH_utility_allowance_2025.json');
+                    const utilityData = await utilityAllowanceResponse.json();
+                    debugOutput.innerHTML += `<p style="color:green">✓ Utility allowance file loaded successfully. Found ${Object.keys(utilityData).length} categories.</p>`;
+                } catch (error) {
+                    debugOutput.innerHTML += `<p style="color:red">✗ Error loading utility allowance: ${error.message}</p>`;
+                }
+                
+                // Test state/county mapping from original file
+                debugOutput.innerHTML += "<p>Testing state/county mapping...</p>";
+                const counties = {
+                    'OH': [{value: 'cuyahoga', label: 'Cuyahoga County'}],
+                    'AL': [{value: 'montgomery', label: 'Montgomery County'}]
+                };
+                
+                debugOutput.innerHTML += `<p>States found: ${Object.keys(counties).join(', ')}</p>`;
+                for (const state in counties) {
+                    debugOutput.innerHTML += `<p>Counties in ${state}: ${counties[state].map(c => c.label).join(', ')}</p>`;
+                }
+                
+                // Create test dropdowns
+                debugOutput.innerHTML += "<h3>Test State/County Dropdowns:</h3>";
+                
+                const testContainer = document.createElement('div');
+                testContainer.innerHTML = `
+                    <div>
+                        <label for="test-state">State: </label>
+                        <select id="test-state">
+                            <option value="">-- Select State --</option>
+                            <option value="OH">Ohio</option>
+                            <option value="AL">Alabama</option>
+                        </select>
+                    </div>
+                    <div id="test-county-container" style="margin-top: 10px; display: none;">
+                        <label for="test-county">County: </label>
+                        <select id="test-county">
+                            <option value="">-- Select County --</option>
+                        </select>
+                    </div>
+                    <div id="test-result" style="margin-top: 20px;"></div>
+                `;
+                
+                debugOutput.appendChild(testContainer);
+                
+                const testState = document.getElementById('test-state');
+                const testCountyContainer = document.getElementById('test-county-container');
+                const testCounty = document.getElementById('test-county');
+                const testResult = document.getElementById('test-result');
+                
+                testState.addEventListener('change', function() {
+                    const selectedState = this.value;
+                    testResult.textContent = `State changed to: ${selectedState}`;
+                    
+                    // Clear county dropdown
+                    testCounty.innerHTML = '<option value="">-- Select County --</option>';
+                    
+                    if (selectedState) {
+                        // Show county selector
+                        testCountyContainer.style.display = 'block';
+                        
+                        // Populate counties for selected state
+                        const stateCounties = counties[selectedState] || [];
+                        stateCounties.forEach(county => {
+                            const option = document.createElement('option');
+                            option.value = county.value;
+                            option.textContent = county.label;
+                            testCounty.appendChild(option);
+                        });
+                    } else {
+                        // Hide county selector if no state is selected
+                        testCountyContainer.style.display = 'none';
+                    }
+                });
+                
+                testCounty.addEventListener('change', function() {
+                    const selectedCounty = this.value;
+                    testResult.textContent += `\nCounty changed to: ${selectedCounty}`;
+                });
+                
+            } catch (error) {
+                debugOutput.innerHTML += `<p style="color:red">Debug error: ${error.message}</p>`;
+                console.error('Debug error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+{
+  "SPACE HEAT (natural gas)": {
+    "1 Single-family dwelling": [
+      56,
+      58,
+      60,
+      62,
+      64,
+      66,
+      68,
+      70,
+      72
+    ],
+    "2 Single-family dwelling - OIL": [
+      105,
+      123,
+      143,
+      163,
+      182,
+      202,
+      221,
+      241,
+      260
+    ],
+    "3 Townhouse, Duplex/Triplex, Row House": [
+      54,
+      56,
+      58,
+      60,
+      62,
+      64,
+      66,
+      68,
+      70
+    ],
+    "4 Multi-unit apartment (Large Apartment 5+)": [
+      52,
+      54,
+      55,
+      57,
+      58,
+      60,
+      61,
+      63,
+      64
+    ],
+    "5 Manufactured home": [
+      54,
+      56,
+      57,
+      59,
+      61,
+      63,
+      65,
+      66,
+      68
+    ],
+    "6 Manufactured home - OIL": [
+      89,
+      105,
+      121,
+      138,
+      155,
+      172,
+      188,
+      205,
+      221
+    ]
+  },
+  "SPACE HEAT (electric resistance heating)": {
+    "7 Single-family dwelling": [
+      54,
+      62,
+      72,
+      82,
+      92,
+      103,
+      112,
+      122,
+      132
+    ],
+    "8 Townhouse, Duplex/Triplex, Row House": [
+      34,
+      39,
+      50,
+      61,
+      72,
+      83,
+      92,
+      102,
+      112
+    ],
+    "9 Multi-unit apartment": [
+      24,
+      28,
+      36,
+      45,
+      54,
+      63,
+      70,
+      78,
+      86
+    ],
+    "10 Manufactured home": [
+      56,
+      65,
+      67,
+      69,
+      71,
+      73,
+      77,
+      80,
+      83
+    ]
+  },
+  "SPACE HEAT (electric heat pump)": {
+    "11 Single-family dwelling": [
+      30,
+      34,
+      40,
+      44,
+      49,
+      54,
+      59,
+      64,
+      68
+    ],
+    "12 Townhouse, Duplex/Triplex, Row House": [
+      26,
+      29,
+      34,
+      38,
+      42,
+      46,
+      50,
+      54,
+      58
+    ],
+    "13 Multi-unit apartment": [
+      22,
+      25,
+      28,
+      31,
+      35,
+      38,
+      41,
+      44,
+      48
+    ],
+    "14 Manufactured home": [
+      25,
+      29,
+      34,
+      38,
+      42,
+      46,
+      50,
+      55,
+      59
+    ]
+  },
+  "DOMESTIC WATER HEATING": {
+    "15 Natural gas": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      11
+    ],
+    "16 Electricity": [
+      21,
+      25,
+      30,
+      35,
+      42,
+      48,
+      53,
+      58,
+      64
+    ]
+  },
+  "COOKING": {
+    "17 Natural gas": [
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4,
+      5
+    ],
+    "18 Electricity": [
+      7,
+      8,
+      11,
+      14,
+      17,
+      20,
+      22,
+      25,
+      28
+    ]
+  },
+  "ELECTRICITY-other": {
+    "19 Single-family": [
+      42,
+      49,
+      66,
+      82,
+      98,
+      113,
+      127,
+      142,
+      156
+    ],
+    "20 Townhouse, Duplex/Triplex, Row House": [
+      37,
+      43,
+      57,
+      72,
+      86,
+      99,
+      111,
+      124,
+      137
+    ],
+    "21 Multi-unit apartment": [
+      31,
+      35,
+      46,
+      58,
+      69,
+      81,
+      90,
+      100,
+      111
+    ],
+    "22 Manufactured home": [
+      42,
+      49,
+      66,
+      82,
+      98,
+      113,
+      127,
+      142,
+      156
+    ]
+  },
+  "MONTHLY SERVICE CHARGES": {
+    "23 Natural gas": [
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44
+    ],
+    "24 Electricity": [
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6,
+      6
+    ]
+  },
+  "WATER & SEWER (if metered)": {
+    "25 City of Cleveland": [
+      115,
+      123,
+      177,
+      260,
+      341,
+      422,
+      467,
+      532,
+      597
+    ],
+    "26 City of East Cleveland": [
+      115,
+      123,
+      177,
+      260,
+      341,
+      422,
+      467,
+      532,
+      597
+    ],
+    "27 Suburban": [
+      115,
+      123,
+      177,
+      260,
+      341,
+      422,
+      467,
+      532,
+      597
+    ]
+  },
+  "APPLIANCES (if not owner-furnished)": {
+    "31 Range": [
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21
+    ],
+    "32 Refrigerator": [
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25,
+      25
+    ]
+  },
+  "TRASH": {
+    "33 City of Cleveland": [
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9
+    ],
+    "34 Suburban": [
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15
+    ]
+  }
+}
