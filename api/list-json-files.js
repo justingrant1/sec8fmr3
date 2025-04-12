@@ -28,22 +28,34 @@ module.exports = (req, res) => {
     const files = fs.readdirSync(rootDir);
     
     // Filter to include JSON files for payment standards and utility allowance
+    // Log all files first for debugging
+    console.log('All files in directory:', files);
+    
     const jsonFiles = files.filter(file => {
-        // Check if it's a JSON file
-        if (!file.endsWith('.json')) return false;
+        // Log each file we're checking
+        console.log('Checking file:', file);
         
-        // Check for various naming patterns
-        const isPaymentStandard = 
-            file.includes('_payment_standards_') || 
-            file.includes('_payment_standards') ||
-            file.includes('payment_standards_');
-            
-        const isUtilityAllowance = 
-            file.includes('_utility_allowance_') || 
-            file.includes('_utility_allowance') ||
-            file.includes('utility_allowance_');
-            
-        return isPaymentStandard || isUtilityAllowance;
+        // Check if it's a JSON file
+        if (!file.endsWith('.json')) {
+            console.log(`${file} - Not a JSON file, skipping`);
+            return false;
+        }
+        
+        // Convert to lowercase for case-insensitive matching
+        const lowerFile = file.toLowerCase();
+        
+        // Check payment standard patterns
+        const paymentPatterns = ['payment_standards', 'payment-standards'];
+        const isPaymentStandard = paymentPatterns.some(pattern => lowerFile.includes(pattern));
+        
+        // Check utility allowance patterns
+        const utilityPatterns = ['utility_allowance', 'utility-allowance'];
+        const isUtilityAllowance = utilityPatterns.some(pattern => lowerFile.includes(pattern));
+        
+        const result = isPaymentStandard || isUtilityAllowance;
+        console.log(`${file} - Is payment: ${isPaymentStandard}, Is utility: ${isUtilityAllowance}, Include: ${result}`);
+        
+        return result;
     });
     
     console.log('Found JSON files:', jsonFiles);
