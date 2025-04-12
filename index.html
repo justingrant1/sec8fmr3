@@ -107,6 +107,60 @@
             border-radius: 6px;
             border-left: 5px solid #28a745;
         }
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+        .collapsible {
+            background-color: #f1f1f1;
+            color: #444;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .active, .collapsible:hover {
+            background-color: #e8e8e8;
+        }
+        .content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: #f5f5f5;
+        }
+        .collapsible:after {
+            content: '\002B';
+            color: #777;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+        .active:after {
+            content: "\2212";
+        }
+        .instructions-card {
+            background-color: #f8f9fa;
+            border-left: 5px solid #17a2b8;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .emoji {
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -128,6 +182,18 @@
         </select>
     </div>
 
+    <div class="instructions-card">
+        <h3><span class="emoji">💡</span> How Rent is Calculated for Section 8 Approval:</h3>
+        <p>When setting a rent amount for a Section 8 tenant, housing authorities use a formula based on local Fair Market Rents (FMR) and the utilities the tenant is responsible for.</p>
+        <ul>
+            <li><strong><span class="emoji">🏠</span> FMR</strong> is the maximum total cost (rent + utilities) that Section 8 will allow for a specific unit size in your ZIP code.</li>
+            <li><strong><span class="emoji">🔌</span> Utilities:</strong> If the tenant pays for any utilities (like gas, electric, or water), those costs are subtracted from the FMR. What's left is the maximum rent you can charge for the unit (called "contract rent").</li>
+            <li><strong><span class="emoji">💰</span> Income:</strong> The tenant must pay 30% of their income, and cannot spend more than 40% of their income on rent + utilities — this is a HUD rule.</li>
+            <li><strong><span class="emoji">✅</span> Max Rent:</strong> In some cases, you can go above the FMR (up to 110%), but only if the tenant's income allows for it.</li>
+        </ul>
+        <p><strong>This calculator figures all of that out for you and tells you the maximum rent you should propose to get approved.</strong></p>
+    </div>
+
     <div id="calculator-container">
         <div id="loading-message" class="loading" style="display: none;">Loading data...</div>
         
@@ -136,7 +202,8 @@
             
             <form id="fmr-form">
                 <label for="zip-code">Zip Code:</label>
-                <input type="text" id="zip-code" name="zip-code" required><br><br>
+                <input type="text" id="zip-code" name="zip-code" required>
+                <div id="zip-error" class="error-message">Please enter a valid ZIP code</div><br><br>
 
                 <label for="bedrooms">Number of Bedrooms:</label>
                 <select id="bedrooms" name="bedrooms">
@@ -149,7 +216,8 @@
 
 
                 <label for="tenant-income">Tenant Monthly Income:</label>
-                <input type="number" id="tenant-income" name="tenant-income" required><br><br>
+                <input type="number" id="tenant-income" name="tenant-income" required>
+                <div id="income-error" class="error-message">Income is required for approval analysis</div><br><br>
 
                 <fieldset>
                     <legend>Tenant is responsible for the following utilities:</legend>
@@ -197,9 +265,9 @@
                 
                 <hr style="margin: 20px 0;">
                 
-                <div id="calculation-details">
-                    <h4>Calculation Details:</h4>
-                    <div id="formula-breakdown" style="font-size: 14px; line-height: 1.5;">
+                <button type="button" class="collapsible">Breakdown of How Your Rent is Evaluated</button>
+                <div class="content">
+                    <div id="formula-breakdown" style="font-size: 14px; line-height: 1.5; padding: 15px 0;">
                         <!-- Formula breakdown will be populated here -->
                     </div>
                 </div>
@@ -648,13 +716,61 @@
             document.getElementById('trash-amount').textContent = trashAmount > 0 ? `($${trashAmount.toFixed(2)})` : '';
         }
 
+        // Initialize collapsible sections
+        document.addEventListener('DOMContentLoaded', function() {
+            setupCollapsibleSections();
+        });
+        
+        function setupCollapsibleSections() {
+            // Get all elements with class="collapsible"
+            const collapsibles = document.getElementsByClassName("collapsible");
+
+            // Add click event listener to each collapsible element
+            for (let i = 0; i < collapsibles.length; i++) {
+                collapsibles[i].addEventListener("click", function() {
+                    // Toggle the active class to highlight the button
+                    this.classList.toggle("active");
+                    
+                    // Toggle the content visibility
+                    const content = this.nextElementSibling;
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            }
+        }
+
         // Calculate FMR based on current data and form inputs
         function calculateFMR() {
+            // Reset error messages
+            document.getElementById('zip-error').style.display = 'none';
+            document.getElementById('income-error').style.display = 'none';
+            
             // Get form values
-            const zip = document.getElementById('zip-code').value;
+            const zip = document.getElementById('zip-code').value.trim();
             const bedrooms = document.getElementById('bedrooms').value;
             
-            const tenantIncome = parseFloat(document.getElementById('tenant-income').value);
+            // Validate zip code
+            if (!zip) {
+                document.getElementById('zip-error').style.display = 'block';
+                return;
+            }
+            
+            // Parse tenant income, handle empty or invalid values
+            const tenantIncomeInput = document.getElementById('tenant-income').value.trim();
+            if (!tenantIncomeInput) {
+                document.getElementById('income-error').style.display = 'block';
+                return;
+            }
+            
+            const tenantIncome = parseFloat(tenantIncomeInput);
+            if (isNaN(tenantIncome)) {
+                document.getElementById('income-error').style.display = 'block';
+                return;
+            }
+            
             const heatingGas = document.getElementById('heating-gas').checked;
             const heatingElectric = document.getElementById('heating-electric').checked;
             const electricity = document.getElementById('electricity').checked;
