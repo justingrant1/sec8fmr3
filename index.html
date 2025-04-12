@@ -326,17 +326,35 @@
                     
                     // Parse county and state from filenames
                     files.forEach(file => {
-                        // Only process payment standards files
-                        if (file.includes('_payment_standards_2025.json')) {
-                            // Example: "cuyahoga_OH_payment_standards_2025.json"
-                            const filenameParts = file.split('_payment_standards_2025.json')[0]; // Get "cuyahoga_OH"
-                            const parts = filenameParts.split('_');
+                        // Process payment standards files, handle both single and double underscore formats
+                        if (file.includes('payment_standards_2025.json')) {
+                            let county, state;
                             
-                            // Ensure we have at least a county and state part
-                            if (parts.length >= 2) {
-                                const county = parts[0];
-                                const state = parts[1];
+                            // Handle different filename formats
+                            if (file.includes('__payment_standards_2025.json')) {
+                                // Format: "county_state__payment_standards_2025.json"
+                                const filenameParts = file.split('__payment_standards_2025.json')[0];
+                                const parts = filenameParts.split('_');
                                 
+                                // Get county and state from parts
+                                if (parts.length >= 2) {
+                                    county = parts[0];
+                                    state = parts[1].toUpperCase(); // Convert state to uppercase
+                                }
+                            } else if (file.includes('_payment_standards_2025.json')) {
+                                // Format: "county_state_payment_standards_2025.json"
+                                const filenameParts = file.split('_payment_standards_2025.json')[0];
+                                const parts = filenameParts.split('_');
+                                
+                                // Get county and state from parts
+                                if (parts.length >= 2) {
+                                    county = parts[0];
+                                    state = parts[1].toUpperCase(); // Convert state to uppercase
+                                }
+                            }
+                            
+                            // Process if county and state were properly extracted
+                            if (county && state) {
                                 console.log(`Detected county: ${county}, state: ${state}`);
                                 
                                 // Initialize state in availableCounties if not exists
