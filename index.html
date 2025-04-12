@@ -453,14 +453,17 @@
             const netFMR = grossFMR - utilityDeduction;
             
             // Calculate 110% of Gross FMR
-            const maxAllowedRent = grossFMR * 1.10 - utilityDeduction;
+            const maxAllowedRent = grossFMR * 1.10;
             
-            // Calculate 40% of tenant income (HUD rule)
-            const fortyPercentIncome = tenantIncome * 0.40;
-            const maxRentWithIncomeCap = fortyPercentIncome;
+            // Calculate tenant share and maximum overage allowed
+            const tenantShare = tenantIncome * 0.30;
+            const maxOverageAllowed = tenantIncome * 0.1;
             
-            // Take the minimum of the two limits (FMR rule vs Income rule)
-            const recommendedRent = Math.min(maxAllowedRent, maxRentWithIncomeCap) - 1;
+            // Calculate the recommended RFTA rent amount using the same logic as calculateFMR
+            const extraAllowanceAmount = netFMR + maxOverageAllowed;
+            const limitedByMaxAllowed = Math.min(maxAllowedRent, extraAllowanceAmount);
+            // Take the higher of the two approval paths, but subtract $1 to be just under the denial threshold
+            const recommendedRent = Math.max(netFMR, limitedByMaxAllowed) - 1;
             
             // Display the recommendation
             document.getElementById('recommendation-value').textContent = '$' + recommendedRent.toFixed(2);
