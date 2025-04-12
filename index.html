@@ -195,25 +195,6 @@
         </select>
     </div>
 
-    <div style="text-align: right; margin-bottom: 15px;">
-        <button type="button" class="collapsible info-button" id="explanation-button">
-            <span class="emoji">💡</span> How Rent is Calculated
-        </button>
-    </div>
-    
-    <div class="content" id="explanation-content">
-        <div class="instructions-card">
-            <h3><span class="emoji">💡</span> How Rent is Calculated for Section 8 Approval:</h3>
-            <p>When setting a rent amount for a Section 8 tenant, housing authorities use a formula based on local Fair Market Rents (FMR) and the utilities the tenant is responsible for.</p>
-            <ul>
-                <li><strong><span class="emoji">🏠</span> FMR</strong> is the maximum total cost (rent + utilities) that Section 8 will allow for a specific unit size in your ZIP code.</li>
-                <li><strong><span class="emoji">🔌</span> Utilities:</strong> If the tenant pays for any utilities (like gas, electric, or water), those costs are subtracted from the FMR. What's left is the maximum rent you can charge for the unit (called "contract rent").</li>
-                <li><strong><span class="emoji">💰</span> Income:</strong> The tenant must pay 30% of their income, and cannot spend more than 40% of their income on rent + utilities — this is a HUD rule.</li>
-                <li><strong><span class="emoji">✅</span> Max Rent:</strong> In some cases, you can go above the FMR (up to 110%), but only if the tenant's income allows for it.</li>
-            </ul>
-            <p><strong>This calculator figures all of that out for you and tells you the maximum rent you should propose to get approved.</strong></p>
-        </div>
-    </div>
 
     <div id="calculator-container">
         <div id="loading-message" class="loading" style="display: none;">Loading data...</div>
@@ -496,7 +477,7 @@
                 updateUtilityAmounts(this.value);
             });
             
-            // We use the setupCollapsibleSections function to handle the explanation button
+            // No need for explanation button handling anymore
         }
         
         // Helper function to calculate total utility deduction
