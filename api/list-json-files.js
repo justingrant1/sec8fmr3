@@ -44,12 +44,20 @@ module.exports = (req, res) => {
         // Convert to lowercase for case-insensitive matching
         const lowerFile = file.toLowerCase();
         
-        // Check payment standard patterns
-        const paymentPatterns = ['payment_standards', 'payment-standards'];
+        // Check payment standard patterns, with and without year suffix
+        const paymentPatterns = [
+            'payment_standards_2025',
+            'payment_standards', 
+            'payment-standards'
+        ];
         const isPaymentStandard = paymentPatterns.some(pattern => lowerFile.includes(pattern));
         
-        // Check utility allowance patterns
-        const utilityPatterns = ['utility_allowance', 'utility-allowance'];
+        // Check utility allowance patterns, with and without year suffix
+        const utilityPatterns = [
+            'utility_allowance_2025',
+            'utility_allowance', 
+            'utility-allowance'
+        ];
         const isUtilityAllowance = utilityPatterns.some(pattern => lowerFile.includes(pattern));
         
         const result = isPaymentStandard || isUtilityAllowance;

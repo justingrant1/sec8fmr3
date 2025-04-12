@@ -615,12 +615,14 @@
                 let paymentStandardsResponse, utilityAllowanceResponse;
                 let fileNamePattern = '';
                 
-                // First try standard format (single underscore)
+                // First try standard format with uppercase state (single underscore)
                 try {
-                    const standardPaymentFile = `${county}_${state}_payment_standards_2025.json`;
-                    const standardUtilityFile = `${county}_${state}_utility_allowance_2025.json`;
+                    // Make sure the state is uppercase in the filename
+                    const uppercaseState = state.toUpperCase();
+                    const standardPaymentFile = `${county}_${uppercaseState}_payment_standards_2025.json`;
+                    const standardUtilityFile = `${county}_${uppercaseState}_utility_allowance_2025.json`;
                     
-                    console.log('Trying standard format files:', standardPaymentFile, standardUtilityFile);
+                    console.log('Trying uppercase state format files:', standardPaymentFile, standardUtilityFile);
                     
                     const responses = await Promise.all([
                         fetch(standardPaymentFile),
@@ -639,38 +641,64 @@
                 } catch (err) {
                     console.log('Could not load standard format files:', err.message);
                     
-                    // Try double underscore format
-                    const doubleUnderscorePaymentFile = `${county}_${state.toLowerCase()}__payment_standards_2025.json`;
-                    const doubleUnderscoreUtilityFile = `${county}_${state.toLowerCase()}__utility_allowance_2025.json`;
-                    
-                    console.log('Trying double underscore format files:', doubleUnderscorePaymentFile, doubleUnderscoreUtilityFile);
-                    
-                    const doubleUnderscoreResponses = await Promise.all([
-                        fetch(doubleUnderscorePaymentFile),
-                        fetch(doubleUnderscoreUtilityFile)
-                    ]);
-                    
-                    if (doubleUnderscoreResponses[0].ok) {
-                        paymentStandardsResponse = doubleUnderscoreResponses[0];
-                        fileNamePattern = 'doubleUnderscore';
-                        console.log('Successfully loaded double underscore payment file');
-                    } else {
-                        throw new Error('Could not load payment standards file in any format');
-                    }
-                    
-                    if (doubleUnderscoreResponses[1].ok) {
-                        utilityAllowanceResponse = doubleUnderscoreResponses[1];
-                        console.log('Successfully loaded double underscore utility file');
-                    } else {
-                        // Try to see if there's only a utility file without a payment file
-                        const utilityOnlyFile = `${county}_${state.toLowerCase()}__utility_allowance_2025.json`;
-                        const utilityResponse = await fetch(utilityOnlyFile);
+                    try {
+                        // Try lowercase state format
+                        const lowercaseState = state.toLowerCase();
+                        const lowercasePaymentFile = `${county}_${lowercaseState}_payment_standards_2025.json`;
+                        const lowercaseUtilityFile = `${county}_${lowercaseState}_utility_allowance_2025.json`;
                         
-                        if (utilityResponse.ok) {
-                            utilityAllowanceResponse = utilityResponse;
-                            console.log('Successfully loaded utility-only file');
+                        console.log('Trying lowercase state format files:', lowercasePaymentFile, lowercaseUtilityFile);
+                        
+                        const lowercaseResponses = await Promise.all([
+                            fetch(lowercasePaymentFile),
+                            fetch(lowercaseUtilityFile)
+                        ]);
+                        
+                        // If the fetch was successful, use these responses
+                        if (lowercaseResponses[0].ok && lowercaseResponses[1].ok) {
+                            paymentStandardsResponse = lowercaseResponses[0];
+                            utilityAllowanceResponse = lowercaseResponses[1];
+                            fileNamePattern = 'lowercase';
+                            console.log('Successfully loaded lowercase format files');
                         } else {
-                            throw new Error('Could not load utility allowance file in any format');
+                            throw new Error('Lowercase format files not found');
+                        }
+                    } catch (err2) {
+                        console.log('Could not load lowercase format files:', err2.message);
+                        
+                        // Try double underscore format as last resort
+                        const doubleUnderscorePaymentFile = `${county}_${state.toLowerCase()}__payment_standards_2025.json`;
+                        const doubleUnderscoreUtilityFile = `${county}_${state.toLowerCase()}__utility_allowance_2025.json`;
+                        
+                        console.log('Trying double underscore format files:', doubleUnderscorePaymentFile, doubleUnderscoreUtilityFile);
+                        
+                        const doubleUnderscoreResponses = await Promise.all([
+                            fetch(doubleUnderscorePaymentFile),
+                            fetch(doubleUnderscoreUtilityFile)
+                        ]);
+                        
+                        if (doubleUnderscoreResponses[0].ok) {
+                            paymentStandardsResponse = doubleUnderscoreResponses[0];
+                            fileNamePattern = 'doubleUnderscore';
+                            console.log('Successfully loaded double underscore payment file');
+                        } else {
+                            throw new Error('Could not load payment standards file in any format');
+                        }
+                        
+                        if (doubleUnderscoreResponses[1].ok) {
+                            utilityAllowanceResponse = doubleUnderscoreResponses[1];
+                            console.log('Successfully loaded double underscore utility file');
+                        } else {
+                            // Try to see if there's only a utility file without a payment file
+                            const utilityOnlyFile = `${county}_${state.toLowerCase()}__utility_allowance_2025.json`;
+                            const utilityResponse = await fetch(utilityOnlyFile);
+                            
+                            if (utilityResponse.ok) {
+                                utilityAllowanceResponse = utilityResponse;
+                                console.log('Successfully loaded utility-only file');
+                            } else {
+                                throw new Error('Could not load utility allowance file in any format');
+                            }
                         }
                     }
                 }
