@@ -196,12 +196,12 @@
     </div>
 
     <div style="text-align: right; margin-bottom: 15px;">
-        <button type="button" class="info-button" id="explanation-button">
+        <button type="button" class="collapsible info-button" id="explanation-button">
             <span class="emoji">💡</span> How Rent is Calculated
         </button>
     </div>
     
-    <div class="content" id="explanation-content" style="display: none;">
+    <div class="content" id="explanation-content">
         <div class="instructions-card">
             <h3><span class="emoji">💡</span> How Rent is Calculated for Section 8 Approval:</h3>
             <p>When setting a rent amount for a Section 8 tenant, housing authorities use a formula based on local Fair Market Rents (FMR) and the utilities the tenant is responsible for.</p>
@@ -496,15 +496,7 @@
                 updateUtilityAmounts(this.value);
             });
             
-            // Info button event listener
-            document.getElementById('explanation-button').addEventListener('click', function() {
-                const explanationContent = document.getElementById('explanation-content');
-                if (explanationContent.style.display === 'none' || explanationContent.style.display === '') {
-                    explanationContent.style.display = 'block';
-                } else {
-                    explanationContent.style.display = 'none';
-                }
-            });
+            // We use the setupCollapsibleSections function to handle the explanation button
         }
         
         // Helper function to calculate total utility deduction
