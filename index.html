@@ -415,19 +415,26 @@
             defaultOption.textContent = '-- Select State --';
             stateSelect.appendChild(defaultOption);
             
-            // Create and append state options
-            const alOption = document.createElement('option');
-            alOption.value = 'AL';
-            alOption.textContent = 'ALABAMA (AL)';
-            stateSelect.appendChild(alOption);
+            // Add all states found in the available counties
+            const states = Object.keys(availableCounties).sort();
+            states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                
+                // Map state codes to full names
+                const stateNames = {
+                    "AL": "ALABAMA (AL)",
+                    "AR": "ARKANSAS (AR)",
+                    "MI": "MICHIGAN (MI)",
+                    "NC": "NORTH CAROLINA (NC)",
+                    "OH": "OHIO (OH)"
+                };
+                
+                option.textContent = stateNames[state] || state;
+                stateSelect.appendChild(option);
+            });
             
-            const ohOption = document.createElement('option');
-            ohOption.value = 'OH';
-            ohOption.textContent = 'OHIO (OH)';
-            stateSelect.appendChild(ohOption);
-            
-            console.log("Added state options using DOM methods");
-            console.log("Available states:", ["AL", "OH"]);
+            console.log("Added state options:", states);
         }
 
         // Populate county dropdown based on state selection
@@ -604,15 +611,69 @@
                 // Split the county ID to get county and state
                 const [county, state] = countyId.split('_');
                 
-                // Construct filenames based on naming convention
-                const paymentStandardsFile = `${county}_${state}_payment_standards_2025.json`;
-                const utilityAllowanceFile = `${county}_${state}_utility_allowance_2025.json`;
+                // Try different filename formats
+                let paymentStandardsResponse, utilityAllowanceResponse;
+                let fileNamePattern = '';
                 
-                // Load both files simultaneously
-                const [paymentStandardsResponse, utilityAllowanceResponse] = await Promise.all([
-                    fetch(paymentStandardsFile),
-                    fetch(utilityAllowanceFile)
-                ]);
+                // First try standard format (single underscore)
+                try {
+                    const standardPaymentFile = `${county}_${state}_payment_standards_2025.json`;
+                    const standardUtilityFile = `${county}_${state}_utility_allowance_2025.json`;
+                    
+                    console.log('Trying standard format files:', standardPaymentFile, standardUtilityFile);
+                    
+                    const responses = await Promise.all([
+                        fetch(standardPaymentFile),
+                        fetch(standardUtilityFile)
+                    ]);
+                    
+                    // If the fetch was successful, use these responses
+                    if (responses[0].ok && responses[1].ok) {
+                        paymentStandardsResponse = responses[0];
+                        utilityAllowanceResponse = responses[1];
+                        fileNamePattern = 'standard';
+                        console.log('Successfully loaded standard format files');
+                    } else {
+                        throw new Error('Standard format files not found');
+                    }
+                } catch (err) {
+                    console.log('Could not load standard format files:', err.message);
+                    
+                    // Try double underscore format
+                    const doubleUnderscorePaymentFile = `${county}_${state.toLowerCase()}__payment_standards_2025.json`;
+                    const doubleUnderscoreUtilityFile = `${county}_${state.toLowerCase()}__utility_allowance_2025.json`;
+                    
+                    console.log('Trying double underscore format files:', doubleUnderscorePaymentFile, doubleUnderscoreUtilityFile);
+                    
+                    const doubleUnderscoreResponses = await Promise.all([
+                        fetch(doubleUnderscorePaymentFile),
+                        fetch(doubleUnderscoreUtilityFile)
+                    ]);
+                    
+                    if (doubleUnderscoreResponses[0].ok) {
+                        paymentStandardsResponse = doubleUnderscoreResponses[0];
+                        fileNamePattern = 'doubleUnderscore';
+                        console.log('Successfully loaded double underscore payment file');
+                    } else {
+                        throw new Error('Could not load payment standards file in any format');
+                    }
+                    
+                    if (doubleUnderscoreResponses[1].ok) {
+                        utilityAllowanceResponse = doubleUnderscoreResponses[1];
+                        console.log('Successfully loaded double underscore utility file');
+                    } else {
+                        // Try to see if there's only a utility file without a payment file
+                        const utilityOnlyFile = `${county}_${state.toLowerCase()}__utility_allowance_2025.json`;
+                        const utilityResponse = await fetch(utilityOnlyFile);
+                        
+                        if (utilityResponse.ok) {
+                            utilityAllowanceResponse = utilityResponse;
+                            console.log('Successfully loaded utility-only file');
+                        } else {
+                            throw new Error('Could not load utility allowance file in any format');
+                        }
+                    }
+                }
                 
                 const paymentStandards = await paymentStandardsResponse.json();
                 const utilityAllowance = await utilityAllowanceResponse.json();
