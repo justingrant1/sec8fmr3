@@ -1,0 +1,35 @@
+{
+  "space_heating": {
+    "0": 163
+  },
+  "cooking": {
+    "0": 20
+  },
+  "other_electric": {
+    "0": 51
+  },
+  "water_heating": {
+    "0": 85
+  },
+  "water": {
+    "0": 100
+  },
+  "sewer": {
+    "0": 123
+  },
+  "electric_all__fee": {
+    "0": 11
+  },
+  "natural_gas_all_fee": {
+    "0": 47
+  },
+  "trash_collection": {
+    "0": 28
+  },
+  "range": {
+    "0": 21
+  },
+  "refrigerator": {
+    "0": 25
+  }
+}
