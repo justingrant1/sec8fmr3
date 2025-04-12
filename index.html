@@ -90,6 +90,23 @@
             margin-left: 5px;
             font-size: 14px;
         }
+        .recommend-button {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            padding: 12px 24px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        .recommend-button:hover {
+            background-color: #218838;
+        }
+        #recommended-rent-display {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 5px solid #28a745;
+        }
     </style>
 </head>
 <body>
@@ -130,16 +147,28 @@
                     <option value="4">4 Bedrooms</option>
                 </select><br><br>
 
-                <label for="proposed-rent">Proposed Rent:</label>
-                <input type="number" id="proposed-rent" name="proposed-rent" required><br><br>
+                <div id="recommendation-container">
+                    <button type="button" id="recommend-button" class="recommend-button">🧠 Recommend Rent for RFTA Submission</button>
+                    <div id="recommended-rent-display" style="display: none; margin-top: 15px;">
+                        <h3>✅ Propose: <span id="recommendation-value" style="font-size: 24px; color: green; font-weight: bold;"></span></h3>
+                    </div>
+                </div><br>
 
                 <label for="tenant-income">Tenant Monthly Income:</label>
                 <input type="number" id="tenant-income" name="tenant-income" required><br><br>
 
                 <fieldset>
                     <legend>Tenant is responsible for the following utilities:</legend>
-                    <input type="checkbox" id="heating" name="utilities" value="heating" checked>
-                    <label for="heating">Heating <span id="heating-amount" class="utility-amount"></span></label><br>
+                    <div class="heating-options">
+                        <div>
+                            <input type="checkbox" id="heating-gas" name="utilities" value="heating-gas" checked>
+                            <label for="heating-gas">Heating (Gas) <span id="heating-gas-amount" class="utility-amount"></span></label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="heating-electric" name="utilities" value="heating-electric">
+                            <label for="heating-electric">Heating (Electric) <span id="heating-electric-amount" class="utility-amount"></span></label>
+                        </div>
+                    </div><br>
 
                     <input type="checkbox" id="electricity" name="utilities" value="electricity" checked>
                     <label for="electricity">Electricity <span id="electricity-amount" class="utility-amount"></span></label><br>
@@ -378,6 +407,9 @@
                 }
             });
             
+            // Recommendation button event
+            document.getElementById('recommend-button').addEventListener('click', recommendRent);
+            
             // Calculate button click event
             document.getElementById('calculate-button').addEventListener('click', calculateFMR);
             
@@ -385,6 +417,151 @@
             document.getElementById('bedrooms').addEventListener('change', function() {
                 updateUtilityAmounts(this.value);
             });
+        }
+        
+        // Calculate and display the recommended rent
+        function recommendRent() {
+            // Get form values
+            const zip = document.getElementById('zip-code').value;
+            const bedrooms = document.getElementById('bedrooms').value;
+            const tenantIncome = parseFloat(document.getElementById('tenant-income').value);
+            
+            if (!zip || isNaN(tenantIncome)) {
+                alert('Please enter ZIP code and tenant income');
+                return;
+            }
+            
+            if (!currentCountyData.paymentStandards || !currentCountyData.utilityAllowance) {
+                alert('County data not loaded. Please select a county first.');
+                return;
+            }
+            
+            // Calculate utility deduction
+            const utilityDeduction = calculateUtilityDeduction(bedrooms);
+            
+            // Calculate FMR values
+            const grossFMR = currentCountyData.paymentStandards[zip]?.[bedrooms] || 0;
+            if (grossFMR === 0) {
+                alert('No FMR data available for this ZIP code. Please check and try again.');
+                return;
+            }
+            
+            // Calculate Net FMR (subtract utility allowance)
+            const netFMR = grossFMR - utilityDeduction;
+            
+            // Calculate 110% of Gross FMR
+            const maxAllowedRent = grossFMR * 1.10 - utilityDeduction;
+            
+            // Calculate 40% of tenant income (HUD rule)
+            const fortyPercentIncome = tenantIncome * 0.40;
+            const maxRentWithIncomeCap = fortyPercentIncome;
+            
+            // Take the minimum of the two limits (FMR rule vs Income rule)
+            const recommendedRent = Math.min(maxAllowedRent, maxRentWithIncomeCap) - 1;
+            
+            // Display the recommendation
+            document.getElementById('recommendation-value').textContent = '$' + recommendedRent.toFixed(2);
+            document.getElementById('recommended-rent-display').style.display = 'block';
+        }
+        
+        // Helper function to calculate total utility deduction
+        function calculateUtilityDeduction(bedrooms) {
+            const heatingGas = document.getElementById('heating-gas').checked;
+            const heatingElectric = document.getElementById('heating-electric').checked;
+            const electricity = document.getElementById('electricity').checked;
+            const water = document.getElementById('water').checked;
+            const cooking = document.getElementById('cooking').checked;
+            const trash = document.getElementById('trash').checked;
+            const noStove = document.getElementById('no-stove').checked;
+            const noRefrigerator = document.getElementById('no-refrigerator').checked;
+            
+            const utilityData = currentCountyData.utilityAllowance;
+            let utilityDeduction = 0;
+            
+            // Calculate based on checked utilities
+            // Gas heating
+            if (heatingGas) {
+                if (utilityData['SPACE HEAT (natural gas)']?.['1 Single-family dwelling']) {
+                    const amount = utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
+                    utilityDeduction += amount;
+                } else if (utilityData['heating']) {
+                    utilityDeduction += utilityData['heating'][bedrooms] || 0;
+                }
+            }
+            
+            // Electric heating
+            if (heatingElectric) {
+                if (utilityData['SPACE HEAT (electric resistance heating)']?.['7 Single-family dwelling']) {
+                    const amount = utilityData['SPACE HEAT (electric resistance heating)']['7 Single-family dwelling'][bedrooms] || 0;
+                    utilityDeduction += amount;
+                } else if (utilityData['heating'] && !heatingGas) { // Only add heating from Montgomery if gas heating isn't also checked
+                    utilityDeduction += utilityData['heating'][bedrooms] || 0;
+                }
+            }
+            
+            if (water) {
+                if (utilityData['WATER & SEWER (if metered)']?.['25 City of Cleveland']) {
+                    utilityDeduction += utilityData['WATER & SEWER (if metered)']['25 City of Cleveland'][bedrooms] || 0;
+                } else if (utilityData['water_sewer']) {
+                    utilityDeduction += utilityData['water_sewer'][bedrooms] || 0;
+                } else if (utilityData['water']) {
+                    utilityDeduction += utilityData['water'][bedrooms] || 0;
+                }
+            }
+            
+            if (cooking) {
+                if (utilityData['COOKING']?.['17 Natural gas']) {
+                    utilityDeduction += utilityData['COOKING']['17 Natural gas'][bedrooms] || 0;
+                } else if (utilityData['cooking']) {
+                    utilityDeduction += utilityData['cooking'][bedrooms] || 0;
+                }
+            }
+            
+            if (trash) {
+                if (utilityData['TRASH']?.['33 City of Cleveland']) {
+                    utilityDeduction += utilityData['TRASH']['33 City of Cleveland'][bedrooms] || 0;
+                } else if (utilityData['trash']) {
+                    utilityDeduction += utilityData['trash'][bedrooms] || 0;
+                }
+            }
+            
+            // Add electricity if checked
+            if (electricity) {
+                if (utilityData['ELECTRICITY-other']?.['19 Single-family']) {
+                    utilityDeduction += utilityData['ELECTRICITY-other']['19 Single-family'][bedrooms] || 0;
+                } else if (utilityData['electricity']) {
+                    utilityDeduction += utilityData['electricity'][bedrooms] || 0;
+                }
+            }
+            
+            // Add water heating if tenant pays utilities
+            if (heatingGas || heatingElectric || water || cooking || trash) {
+                // Water heating
+                if (utilityData['DOMESTIC WATER HEATING']?.['16 Electricity']) {
+                    utilityDeduction += utilityData['DOMESTIC WATER HEATING']['16 Electricity'][bedrooms] || 0;
+                } else if (utilityData['water_heating']) {
+                    utilityDeduction += utilityData['water_heating'][bedrooms] || 0;
+                }
+            }
+            
+            // Appliances
+            if (noStove) {
+                if (utilityData['APPLIANCES (if not owner-furnished)']?.['31 Range']) {
+                    utilityDeduction += utilityData['APPLIANCES (if not owner-furnished)']['31 Range'][bedrooms] || 0;
+                } else if (utilityData['stove']) {
+                    utilityDeduction += utilityData['stove'][bedrooms] || 0;
+                }
+            }
+            
+            if (noRefrigerator) {
+                if (utilityData['APPLIANCES (if not owner-furnished)']?.['32 Refrigerator']) {
+                    utilityDeduction += utilityData['APPLIANCES (if not owner-furnished)']['32 Refrigerator'][bedrooms] || 0;
+                } else if (utilityData['refrigerator']) {
+                    utilityDeduction += utilityData['refrigerator'][bedrooms] || 0;
+                }
+            }
+            
+            return utilityDeduction;
         }
 
         // Load county data based on selection
@@ -443,10 +620,19 @@
             let amount = 0;
             
             switch(utilityType) {
-                case 'heating':
+                case 'heating-gas':
                     if (utilityData['SPACE HEAT (natural gas)']?.['1 Single-family dwelling']) {
                         amount = utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
                     } else if (utilityData['heating']) {
+                        amount = utilityData['heating'][bedrooms] || 0;
+                    }
+                    break;
+                
+                case 'heating-electric':
+                    if (utilityData['SPACE HEAT (electric resistance heating)']?.['7 Single-family dwelling']) {
+                        amount = utilityData['SPACE HEAT (electric resistance heating)']['7 Single-family dwelling'][bedrooms] || 0;
+                    } else if (utilityData['heating']) {
+                        // For Montgomery, use the same heating value as there's no distinction
                         amount = utilityData['heating'][bedrooms] || 0;
                     }
                     break;
@@ -493,9 +679,13 @@
         function updateUtilityAmounts(bedrooms) {
             if (!currentCountyData.utilityAllowance) return;
             
-            // Update heating amount
-            const heatingAmount = getUtilityAmount('heating', bedrooms);
-            document.getElementById('heating-amount').textContent = heatingAmount > 0 ? `($${heatingAmount.toFixed(2)})` : '';
+            // Update heating (gas) amount
+            const heatingGasAmount = getUtilityAmount('heating-gas', bedrooms);
+            document.getElementById('heating-gas-amount').textContent = heatingGasAmount > 0 ? `($${heatingGasAmount.toFixed(2)})` : '';
+            
+            // Update heating (electric) amount
+            const heatingElectricAmount = getUtilityAmount('heating-electric', bedrooms);
+            document.getElementById('heating-electric-amount').textContent = heatingElectricAmount > 0 ? `($${heatingElectricAmount.toFixed(2)})` : '';
             
             // Update electricity amount
             const electricityAmount = getUtilityAmount('electricity', bedrooms);
@@ -519,9 +709,19 @@
             // Get form values
             const zip = document.getElementById('zip-code').value;
             const bedrooms = document.getElementById('bedrooms').value;
-            const proposedRent = parseFloat(document.getElementById('proposed-rent').value);
+            // Get the recommended rent value instead of a user-entered proposed rent
+            const recommendedRentValue = document.getElementById('recommendation-value').textContent;
+            const proposedRent = recommendedRentValue ? parseFloat(recommendedRentValue.replace('$', '')) : 0;
+            
+            if (!proposedRent) {
+                alert('Please use the "Recommend Rent" button first to calculate a recommended rent amount');
+                return;
+            }
+            
             const tenantIncome = parseFloat(document.getElementById('tenant-income').value);
-            const heating = document.getElementById('heating').checked;
+            const heatingGas = document.getElementById('heating-gas').checked;
+            const heatingElectric = document.getElementById('heating-electric').checked;
+            const electricity = document.getElementById('electricity').checked;
             const water = document.getElementById('water').checked;
             const cooking = document.getElementById('cooking').checked;
             const trash = document.getElementById('trash').checked;
@@ -538,13 +738,22 @@
             const utilityData = currentCountyData.utilityAllowance;
             
             // Try different utility data formats (flexible handling)
-            if (heating) {
-                // First, try the more specific format (Cuyahoga style)
+            // Gas heating
+            if (heatingGas) {
                 if (utilityData['SPACE HEAT (natural gas)']?.['1 Single-family dwelling']) {
-                    utilityDeduction += utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
-                } 
-                // Then try the simpler format (Montgomery style)
-                else if (utilityData['heating']) {
+                    const amount = utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
+                    utilityDeduction += amount;
+                } else if (utilityData['heating']) {
+                    utilityDeduction += utilityData['heating'][bedrooms] || 0;
+                }
+            }
+            
+            // Electric heating
+            if (heatingElectric) {
+                if (utilityData['SPACE HEAT (electric resistance heating)']?.['7 Single-family dwelling']) {
+                    const amount = utilityData['SPACE HEAT (electric resistance heating)']['7 Single-family dwelling'][bedrooms] || 0;
+                    utilityDeduction += amount;
+                } else if (utilityData['heating'] && !heatingGas) { // Only add heating from Montgomery if gas heating isn't also checked
                     utilityDeduction += utilityData['heating'][bedrooms] || 0;
                 }
             }
@@ -575,14 +784,17 @@
                 }
             }
             
-            // Add electricity and water heating if tenant pays any utilities
-            if (heating || water || cooking || trash) {
-                // Electricity
+            // Add electricity if checked
+            if (electricity) {
                 if (utilityData['ELECTRICITY-other']?.['19 Single-family']) {
                     utilityDeduction += utilityData['ELECTRICITY-other']['19 Single-family'][bedrooms] || 0;
                 } else if (utilityData['electricity']) {
                     utilityDeduction += utilityData['electricity'][bedrooms] || 0;
                 }
+            }
+            
+            // Add water heating if tenant pays utilities
+            if (heatingGas || heatingElectric || water || cooking || trash) {
                 
                 // Water heating
                 if (utilityData['DOMESTIC WATER HEATING']?.['16 Electricity']) {
@@ -653,7 +865,7 @@
             // Populate the formula breakdown
             const formulaBreakdown = document.getElementById('formula-breakdown');
             
-            // Create a detailed breakdown of all calculations
+                // Create a detailed breakdown of all calculations
             let breakdownHTML = `
                 <p><strong>Input Values:</strong></p>
                 <ul>
@@ -662,7 +874,9 @@
                     <li>Proposed Rent: $${proposedRent.toFixed(2)}</li>
                     <li>Tenant Monthly Income: $${tenantIncome.toFixed(2)}</li>
                     <li>Tenant Utility Responsibilities: ${[
-                        heating ? 'Heating' : '',
+                        heatingGas ? 'Heating (Gas)' : '',
+                        heatingElectric ? 'Heating (Electric)' : '',
+                        electricity ? 'Electricity' : '',
                         water ? 'Water' : '',
                         cooking ? 'Cooking' : '', 
                         trash ? 'Trash' : ''
@@ -677,14 +891,36 @@
                 <ul>`;
                 
             // Add utility breakdown details
-            if (heating) {
+            if (heatingGas) {
                 let heatingValue = 0;
                 if (utilityData['SPACE HEAT (natural gas)']?.['1 Single-family dwelling']) {
                     heatingValue = utilityData['SPACE HEAT (natural gas)']['1 Single-family dwelling'][bedrooms] || 0;
-                    breakdownHTML += `<li>Heating (natural gas): $${heatingValue.toFixed(2)}</li>`;
+                    breakdownHTML += `<li>Heating (Gas): $${heatingValue.toFixed(2)}</li>`;
                 } else if (utilityData['heating']) {
                     heatingValue = utilityData['heating'][bedrooms] || 0;
-                    breakdownHTML += `<li>Heating: $${heatingValue.toFixed(2)}</li>`;
+                    breakdownHTML += `<li>Heating (Gas): $${heatingValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            if (heatingElectric) {
+                let heatingValue = 0;
+                if (utilityData['SPACE HEAT (electric resistance heating)']?.['7 Single-family dwelling']) {
+                    heatingValue = utilityData['SPACE HEAT (electric resistance heating)']['7 Single-family dwelling'][bedrooms] || 0;
+                    breakdownHTML += `<li>Heating (Electric): $${heatingValue.toFixed(2)}</li>`;
+                } else if (utilityData['heating'] && !heatingGas) {
+                    heatingValue = utilityData['heating'][bedrooms] || 0;
+                    breakdownHTML += `<li>Heating (Electric): $${heatingValue.toFixed(2)}</li>`;
+                }
+            }
+            
+            if (electricity) {
+                let electricityValue = 0;
+                if (utilityData['ELECTRICITY-other']?.['19 Single-family']) {
+                    electricityValue = utilityData['ELECTRICITY-other']['19 Single-family'][bedrooms] || 0;
+                    breakdownHTML += `<li>Electricity: $${electricityValue.toFixed(2)}</li>`;
+                } else if (utilityData['electricity']) {
+                    electricityValue = utilityData['electricity'][bedrooms] || 0;
+                    breakdownHTML += `<li>Electricity: $${electricityValue.toFixed(2)}</li>`;
                 }
             }
             
@@ -724,16 +960,8 @@
                 }
             }
             
-            // Add electricity and water heating if tenant pays any utilities
-            if (heating || water || cooking || trash) {
-                let electricityValue = 0;
-                if (utilityData['ELECTRICITY-other']?.['19 Single-family']) {
-                    electricityValue = utilityData['ELECTRICITY-other']['19 Single-family'][bedrooms] || 0;
-                    breakdownHTML += `<li>Electricity (other): $${electricityValue.toFixed(2)}</li>`;
-                } else if (utilityData['electricity']) {
-                    electricityValue = utilityData['electricity'][bedrooms] || 0;
-                    breakdownHTML += `<li>Electricity: $${electricityValue.toFixed(2)}</li>`;
-                }
+            // Add water heating if tenant pays utilities
+            if (heatingGas || heatingElectric || water || cooking || trash) {
                 
                 let waterHeatingValue = 0;
                 if (utilityData['DOMESTIC WATER HEATING']?.['16 Electricity']) {
