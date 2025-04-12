@@ -28,10 +28,23 @@ module.exports = (req, res) => {
     const files = fs.readdirSync(rootDir);
     
     // Filter to include JSON files for payment standards and utility allowance
-    const jsonFiles = files.filter(file => 
-        file.endsWith('.json') && 
-        (file.includes('_payment_standards_') || 
-         file.includes('_utility_allowance_')));
+    const jsonFiles = files.filter(file => {
+        // Check if it's a JSON file
+        if (!file.endsWith('.json')) return false;
+        
+        // Check for various naming patterns
+        const isPaymentStandard = 
+            file.includes('_payment_standards_') || 
+            file.includes('_payment_standards') ||
+            file.includes('payment_standards_');
+            
+        const isUtilityAllowance = 
+            file.includes('_utility_allowance_') || 
+            file.includes('_utility_allowance') ||
+            file.includes('utility_allowance_');
+            
+        return isPaymentStandard || isUtilityAllowance;
+    });
     
     console.log('Found JSON files:', jsonFiles);
     
