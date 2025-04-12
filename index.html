@@ -147,15 +147,8 @@
                     <option value="4">4 Bedrooms</option>
                 </select><br><br>
 
-                <div id="recommendation-container">
-                    <button type="button" id="recommend-button" class="recommend-button">🧠 Recommend Rent for RFTA Submission</button>
-                    <div id="recommended-rent-display" style="display: none; margin-top: 15px;">
-                        <h3>✅ Propose: <span id="recommendation-value" style="font-size: 24px; color: green; font-weight: bold;"></span></h3>
-                    </div>
-                </div><br>
-                
                 <label for="proposed-rent">Proposed Rent:</label>
-                <input type="number" id="proposed-rent" name="proposed-rent" placeholder="Click 'Recommend Rent' button above" required><br><br>
+                <input type="number" id="proposed-rent" name="proposed-rent" required><br><br>
 
                 <label for="tenant-income">Tenant Monthly Income:</label>
                 <input type="number" id="tenant-income" name="tenant-income" required><br><br>
@@ -410,9 +403,6 @@
                 }
             });
             
-            // Recommendation button event
-            document.getElementById('recommend-button').addEventListener('click', recommendRent);
-            
             // Calculate button click event
             document.getElementById('calculate-button').addEventListener('click', calculateFMR);
             
@@ -420,57 +410,6 @@
             document.getElementById('bedrooms').addEventListener('change', function() {
                 updateUtilityAmounts(this.value);
             });
-        }
-        
-        // Calculate and display the recommended rent
-        function recommendRent() {
-            // Get form values
-            const zip = document.getElementById('zip-code').value;
-            const bedrooms = document.getElementById('bedrooms').value;
-            const tenantIncome = parseFloat(document.getElementById('tenant-income').value);
-            
-            if (!zip || isNaN(tenantIncome)) {
-                alert('Please enter ZIP code and tenant income');
-                return;
-            }
-            
-            if (!currentCountyData.paymentStandards || !currentCountyData.utilityAllowance) {
-                alert('County data not loaded. Please select a county first.');
-                return;
-            }
-            
-            // Calculate utility deduction
-            const utilityDeduction = calculateUtilityDeduction(bedrooms);
-            
-            // Calculate FMR values
-            const grossFMR = currentCountyData.paymentStandards[zip]?.[bedrooms] || 0;
-            if (grossFMR === 0) {
-                alert('No FMR data available for this ZIP code. Please check and try again.');
-                return;
-            }
-            
-            // Calculate Net FMR (subtract utility allowance)
-            const netFMR = grossFMR - utilityDeduction;
-            
-            // Calculate 110% of Gross FMR
-            const maxAllowedRent = grossFMR * 1.10;
-            
-            // Calculate tenant share and maximum overage allowed
-            const tenantShare = tenantIncome * 0.30;
-            const maxOverageAllowed = tenantIncome * 0.1;
-            
-            // Calculate the recommended RFTA rent amount using the same logic as calculateFMR
-            const extraAllowanceAmount = netFMR + maxOverageAllowed;
-            const limitedByMaxAllowed = Math.min(maxAllowedRent, extraAllowanceAmount);
-            // Take the higher of the two approval paths, but subtract $1 to be just under the denial threshold
-            const recommendedRent = Math.max(netFMR, limitedByMaxAllowed) - 1;
-            
-            // Display the recommendation
-            document.getElementById('recommendation-value').textContent = '$' + recommendedRent.toFixed(2);
-            document.getElementById('recommended-rent-display').style.display = 'block';
-            
-            // Update the proposed rent input field with the recommended value
-            document.getElementById('proposed-rent').value = recommendedRent.toFixed(2);
         }
         
         // Helper function to calculate total utility deduction
@@ -722,7 +661,7 @@
             const proposedRent = parseFloat(document.getElementById('proposed-rent').value);
             
             if (!proposedRent || isNaN(proposedRent)) {
-                alert('Please use the "Recommend Rent" button first to calculate a recommended rent amount');
+                alert('Please enter a valid Proposed Rent amount');
                 return;
             }
             
