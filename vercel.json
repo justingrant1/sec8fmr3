@@ -1,7 +1,14 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "public",
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/list-json-files", "dest": "/api/list-json-files.js" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ],
   "functions": {
-    "api/list-json-files.js": {
+    "api/**/*.js": {
       "memory": 1024
     }
   }

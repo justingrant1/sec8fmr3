@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "build": "echo 'Static files ready'"
+    "build": "mkdir -p public/api && cp *.html public/ && cp *.json public/ && cp *.js public/ && cp -r api/* public/api/",
+    "vercel-build": "npm run build"
   },
   "engines": {
     "node": ">=14.0.0"
