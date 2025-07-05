@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/robots.txt",
-      "destination": "/api/robots.txt"
+      "destination": "/api/robots"
     },
     {
       "source": "/sitemap.xml",
