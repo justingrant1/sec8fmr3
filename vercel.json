@@ -1,15 +1,4 @@
 {
-  "functions": {
-    "api/list-json-files.js": {
-      "runtime": "@vercel/node"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/list-json-files",
-      "destination": "/api/list-json-files"
-    }
-  ],
   "headers": [
     {
       "source": "/robots.txt",
