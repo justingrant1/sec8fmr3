@@ -5,9 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
-    "build": "mkdir -p public/api && cp *.html public/ && cp *.json public/ && cp *.js public/ && cp -r api/* public/api/",
-    "vercel-build": "npm run build"
+    "dev": "node server.js"
   },
   "engines": {
     "node": ">=14.0.0"
