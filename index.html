@@ -7,10 +7,15 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            max-width: 800px;
             margin: 0 auto;
+            max-width: 800px;
             padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1;
         }
         fieldset {
             margin-bottom: 15px;
@@ -177,100 +182,102 @@
     </style>
 </head>
 <body>
-    <h1>Section 8 FMR Calculator</h1>
+    <div class="main-content">
+        <h1>Section 8 FMR Calculator</h1>
 
-    <div class="selection-group">
-        <label for="state">Select State:</label>
-        <select id="state" name="state">
-            <option value="">-- Select State --</option>
-            <!-- States will be populated automatically -->
-        </select>
-    </div>
+        <div class="selection-group">
+            <label for="state">Select State:</label>
+            <select id="state" name="state">
+                <option value="">-- Select State --</option>
+                <!-- States will be populated automatically -->
+            </select>
+        </div>
 
-    <div class="selection-group" id="county-selector" style="display: none;">
-        <label for="county">Select County:</label>
-        <select id="county" name="county">
-            <option value="">-- Select County --</option>
-            <!-- Counties will be populated based on state selection -->
-        </select>
-    </div>
+        <div class="selection-group" id="county-selector" style="display: none;">
+            <label for="county">Select County:</label>
+            <select id="county" name="county">
+                <option value="">-- Select County --</option>
+                <!-- Counties will be populated based on state selection -->
+            </select>
+        </div>
 
 
-    <div id="calculator-container">
-        <div id="loading-message" class="loading" style="display: none;">Loading data...</div>
-        
-        <div id="calculator-form" style="display: none;">
-            <h2 id="county-state-header"></h2>
+        <div id="calculator-container">
+            <div id="loading-message" class="loading" style="display: none;">Loading data...</div>
             
-            <form id="fmr-form">
-                <label for="zip-code">Zip Code:</label>
-                <input type="text" id="zip-code" name="zip-code" required>
-                <div id="zip-error" class="error-message">Please enter a valid ZIP code</div><br><br>
-
-                <label for="bedrooms">Number of Bedrooms:</label>
-                <select id="bedrooms" name="bedrooms">
-                    <option value="0">Studio</option>
-                    <option value="1">1 Bedroom</option>
-                    <option value="2">2 Bedrooms</option>
-                    <option value="3">3 Bedrooms</option>
-                    <option value="4">4 Bedrooms</option>
-                </select><br><br>
-
-
-                <label for="tenant-income">Tenant Monthly Income:</label>
-                <input type="number" id="tenant-income" name="tenant-income" required>
-                <div id="income-error" class="error-message">Income is required for approval analysis</div><br><br>
-
-                <fieldset>
-                    <legend>Tenant is responsible for the following utilities:</legend>
-                    <div class="heating-options">
-                        <div>
-                            <input type="checkbox" id="heating-gas" name="utilities" value="heating-gas" checked>
-                            <label for="heating-gas">Heating (Gas) <span id="heating-gas-amount" class="utility-amount"></span></label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="heating-electric" name="utilities" value="heating-electric">
-                            <label for="heating-electric">Heating (Electric) <span id="heating-electric-amount" class="utility-amount"></span></label>
-                        </div>
-                    </div><br>
-
-                    <input type="checkbox" id="electricity" name="utilities" value="electricity" checked>
-                    <label for="electricity">Electricity <span id="electricity-amount" class="utility-amount"></span></label><br>
-
-                    <input type="checkbox" id="water" name="utilities" value="water" checked>
-                    <label for="water">Water <span id="water-amount" class="utility-amount"></span></label><br>
-
-                    <input type="checkbox" id="cooking" name="utilities" value="cooking" checked>
-                    <label for="cooking">Cooking <span id="cooking-amount" class="utility-amount"></span></label><br>
-
-                    <input type="checkbox" id="trash" name="utilities" value="trash" checked>
-                    <label for="trash">Trash <span id="trash-amount" class="utility-amount"></span></label><br>
-                </fieldset><br>
-
-                <input type="checkbox" id="no-stove" name="no-stove">
-                <label for="no-stove">No Stove</label><br><br>
-
-                <input type="checkbox" id="no-refrigerator" name="no-refrigerator">
-                <label for="no-refrigerator">No Refrigerator</label><br><br>
-
-                <button type="button" id="calculate-button">Calculate</button>
-            </form>
-
-            <div id="results" class="results" style="margin-top: 20px; display: none;">
-                <h3>Calculation Results:</h3>
-                <p>Gross FMR: <span id="gross-fmr"></span></p>
-                <p>Utility Deduction: <span id="utility-deduction"></span></p>
-                <p>Net FMR: <span id="net-fmr"></span></p>
-                <p>Max Allowed Rent (110% Gross FMR): <span id="max-allowed"></span></p>
-                <p>Tenant 30% Share: <span id="tenant-share"></span></p>
-                <p><strong>Recommended RFTA Rent Amount: <span id="recommended-rent"></span></strong></p>
+            <div id="calculator-form" style="display: none;">
+                <h2 id="county-state-header"></h2>
                 
-                <hr style="margin: 20px 0;">
-                
-                <button type="button" class="collapsible">Breakdown of How Your Rent is Evaluated</button>
-                <div class="content">
-                    <div id="formula-breakdown" style="font-size: 14px; line-height: 1.5; padding: 15px 0;">
-                        <!-- Formula breakdown will be populated here -->
+                <form id="fmr-form">
+                    <label for="zip-code">Zip Code:</label>
+                    <input type="text" id="zip-code" name="zip-code" required>
+                    <div id="zip-error" class="error-message">Please enter a valid ZIP code</div><br><br>
+
+                    <label for="bedrooms">Number of Bedrooms:</label>
+                    <select id="bedrooms" name="bedrooms">
+                        <option value="0">Studio</option>
+                        <option value="1">1 Bedroom</option>
+                        <option value="2">2 Bedrooms</option>
+                        <option value="3">3 Bedrooms</option>
+                        <option value="4">4 Bedrooms</option>
+                    </select><br><br>
+
+
+                    <label for="tenant-income">Tenant Monthly Income:</label>
+                    <input type="number" id="tenant-income" name="tenant-income" required>
+                    <div id="income-error" class="error-message">Income is required for approval analysis</div><br><br>
+
+                    <fieldset>
+                        <legend>Tenant is responsible for the following utilities:</legend>
+                        <div class="heating-options">
+                            <div>
+                                <input type="checkbox" id="heating-gas" name="utilities" value="heating-gas" checked>
+                                <label for="heating-gas">Heating (Gas) <span id="heating-gas-amount" class="utility-amount"></span></label>
+                            </div>
+                            <div>
+                                <input type="checkbox" id="heating-electric" name="utilities" value="heating-electric">
+                                <label for="heating-electric">Heating (Electric) <span id="heating-electric-amount" class="utility-amount"></span></label>
+                            </div>
+                        </div><br>
+
+                        <input type="checkbox" id="electricity" name="utilities" value="electricity" checked>
+                        <label for="electricity">Electricity <span id="electricity-amount" class="utility-amount"></span></label><br>
+
+                        <input type="checkbox" id="water" name="utilities" value="water" checked>
+                        <label for="water">Water <span id="water-amount" class="utility-amount"></span></label><br>
+
+                        <input type="checkbox" id="cooking" name="utilities" value="cooking" checked>
+                        <label for="cooking">Cooking <span id="cooking-amount" class="utility-amount"></span></label><br>
+
+                        <input type="checkbox" id="trash" name="utilities" value="trash" checked>
+                        <label for="trash">Trash <span id="trash-amount" class="utility-amount"></span></label><br>
+                    </fieldset><br>
+
+                    <input type="checkbox" id="no-stove" name="no-stove">
+                    <label for="no-stove">No Stove</label><br><br>
+
+                    <input type="checkbox" id="no-refrigerator" name="no-refrigerator">
+                    <label for="no-refrigerator">No Refrigerator</label><br><br>
+
+                    <button type="button" id="calculate-button">Calculate</button>
+                </form>
+
+                <div id="results" class="results" style="margin-top: 20px; display: none;">
+                    <h3>Calculation Results:</h3>
+                    <p>Gross FMR: <span id="gross-fmr"></span></p>
+                    <p>Utility Deduction: <span id="utility-deduction"></span></p>
+                    <p>Net FMR: <span id="net-fmr"></span></p>
+                    <p>Max Allowed Rent (110% Gross FMR): <span id="max-allowed"></span></p>
+                    <p>Tenant 30% Share: <span id="tenant-share"></span></p>
+                    <p><strong>Recommended RFTA Rent Amount: <span id="recommended-rent"></span></strong></p>
+                    
+                    <hr style="margin: 20px 0;">
+                    
+                    <button type="button" class="collapsible">Breakdown of How Your Rent is Evaluated</button>
+                    <div class="content">
+                        <div id="formula-breakdown" style="font-size: 14px; line-height: 1.5; padding: 15px 0;">
+                            <!-- Formula breakdown will be populated here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -307,12 +314,26 @@
                         {
                             name: "Cuyahoga",
                             id: "cuyahoga_OH"
+                        },
+                        {
+                            name: "Hamilton",
+                            id: "hamilton_OH"
                         }
                     ],
                     "AL": [
                         {
                             name: "Montgomery",
                             id: "montgomery_AL"
+                        },
+                        {
+                            name: "Jefferson",
+                            id: "jefferson_AL"
+                        }
+                    ],
+                    "MI": [
+                        {
+                            name: "Wayne",
+                            id: "wayne_MI"
                         }
                     ]
                 };
@@ -357,16 +378,21 @@
                             if (county && state) {
                                 console.log(`Detected county: ${county}, state: ${state}`);
                                 
+                                // Normalize state to uppercase
+                                const normalizedState = state.toUpperCase();
+                                
                                 // Initialize state in availableCounties if not exists
-                                if (!availableCounties[state]) {
-                                    availableCounties[state] = [];
+                                if (!availableCounties[normalizedState]) {
+                                    availableCounties[normalizedState] = [];
                                 }
                                 
                                 // Add county to state if not already added
-                                if (!availableCounties[state].some(c => c.id === `${county}_${state}`)) {
-                                    availableCounties[state].push({
+                                // Use case-insensitive comparison for county ID
+                                const countyId = `${county}_${normalizedState}`;
+                                if (!availableCounties[normalizedState].some(c => c.id.toLowerCase() === countyId.toLowerCase())) {
+                                    availableCounties[normalizedState].push({
                                         name: county.charAt(0).toUpperCase() + county.slice(1),
-                                        id: `${county}_${state}`
+                                        id: countyId
                                     });
                                 }
                             }
@@ -614,6 +640,8 @@
                 // Try different filename formats
                 let paymentStandardsResponse, utilityAllowanceResponse;
                 let fileNamePattern = '';
+                
+                console.log(`Loading county data for: ${county}, ${state}`);
                 
                 // First try standard format with uppercase state (single underscore)
                 try {
@@ -1179,5 +1207,8 @@
             formulaBreakdown.innerHTML = breakdownHTML;
         }
     </script>
+    <footer style="margin-top: 40px; padding: 10px; text-align: center; font-size: 12px; color: #777;">
+        <p>For inquiries, contact us at <a href="mailto:info@sec8fmr.com" style="color: #777; text-decoration: none;">info@sec8fmr.com</a></p>
+    </footer>
 </body>
 </html>
