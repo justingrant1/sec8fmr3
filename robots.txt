@@ -1,0 +1,52 @@
+# Robots.txt for Section 8 FMR Calculator
+# Website: https://sec8fmr.com
+
+User-agent: *
+Allow: /
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Disallow API endpoints and debug files from indexing
+Disallow: /api/
+Disallow: /debug.html
+Disallow: /_next/
+Disallow: /.vercel/
+Disallow: /node_modules/
+
+# Allow JSON data files for search engines to discover structured data
+Allow: /*.json
+
+# Crawl delay for respectful crawling
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://sec8fmr.com/sitemap.xml
+
+# Cache directive for better crawl efficiency
+Cache-delay: 86400
