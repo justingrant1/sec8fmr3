@@ -5,8 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
-    "build": "echo 'No build step needed for static files'"
+    "dev": "node server.js"
   },
   "engines": {
     "node": ">=14.0.0"
