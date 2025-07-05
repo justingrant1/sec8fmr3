@@ -38,6 +38,24 @@ This application is configured for easy deployment on Vercel:
 3. Import the project in Vercel
 4. Deploy without any additional configuration (the vercel.json file handles routing)
 
+## Supported Counties
+
+The calculator currently supports the following states and counties:
+
+### Ohio (OH)
+- Cuyahoga County
+- Hamilton County
+- Summit County
+
+### Alabama (AL)
+- Montgomery County
+- Jefferson County
+
+### Michigan (MI)
+- Wayne County
+- Oakland County
+- Macomb County
+
 ## File Structure
 
 - `index.html` - Main universal calculator interface
@@ -50,8 +68,19 @@ This application is configured for easy deployment on Vercel:
 - County data files:
   - `cuyahoga_OH_payment_standards_2025.json` - Payment standards for Cuyahoga County, OH
   - `cuyahoga_OH_utility_allowance_2025.json` - Utility allowances for Cuyahoga County, OH
-  - `montgomery_AL_payment_standards_2025.json` - Payment standards for Montgomery, AL
-  - `montgomery_AL_utility_allowance_2025.json` - Utility allowances for Montgomery, AL
+  - `hamilton_OH_payment_standards_2025.json` - Payment standards for Hamilton County, OH
+  - `hamilton_OH_utility_allowance_2025.json` - Utility allowances for Hamilton County, OH
+  - `summit_oh_payment_standards_2025.json` - Payment standards for Summit County, OH
+  - `montgomery_AL_payment_standards_2025.json` - Payment standards for Montgomery County, AL
+  - `montgomery_AL_utility_allowance_2025.json` - Utility allowances for Montgomery County, AL
+  - `jefferson_AL_payment_standards_2025.json` - Payment standards for Jefferson County, AL
+  - `jefferson_AL_utility_allowance_2025.json` - Utility allowances for Jefferson County, AL
+  - `wayne_MI_payment_standards_2025.json` - Payment standards for Wayne County, MI
+  - `wayne_MI_utility_allowance_2025.json` - Utility allowances for Wayne County, MI
+  - `oakland_MI_payment_standards_2025.json` - Payment standards for Oakland County, MI
+  - `oakland_MI_utility_allowance_2025.json` - Utility allowances for Oakland County, MI
+  - `macomb_MI_payment_standards_2025.json` - Payment standards for Macomb County, MI
+  - `macomb_MI_utility_allowance_2025.json` - Utility allowances for Macomb County, MI
 
 ## Adding New Counties
 
