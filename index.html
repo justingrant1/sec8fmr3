@@ -394,112 +394,72 @@
             try {
                 console.log("Starting county detection...");
                 
-                // Hardcode the available counties for reliability
-                // This ensures the app works even if API fails
-                availableCounties = {
-                    "OH": [
-                        {
-                            name: "Cuyahoga",
-                            id: "cuyahoga_OH"
-                        },
-                        {
-                            name: "Hamilton",
-                            id: "hamilton_OH"
-                        },
-                        {
-                            name: "Summit",
-                            id: "summit_OH"
-                        }
-                    ],
-                    "AL": [
-                        {
-                            name: "Montgomery",
-                            id: "montgomery_AL"
-                        },
-                        {
-                            name: "Jefferson",
-                            id: "jefferson_AL"
-                        }
-                    ],
-                    "MI": [
-                        {
-                            name: "Wayne",
-                            id: "wayne_MI"
-                        },
-                        {
-                            name: "Oakland",
-                            id: "oakland_MI"
-                        },
-                        {
-                            name: "Macomb",
-                            id: "macomb_MI"
-                        }
-                    ]
-                };
+                // Initialize empty counties object - will be populated dynamically
+                availableCounties = {};
                 
-                try {
-                    // Try to fetch JSON files, but continue even if this fails
-                    const response = await fetch('list-json-files');
-                    const files = await response.json();
-                    
-                    console.log("Files detected from API:", files);
-                    
-                    // Parse county and state from filenames
-                    files.forEach(file => {
-                        // Process payment standards files, handle both single and double underscore formats
-                        if (file.includes('payment_standards_2025.json')) {
-                            let county, state;
+                // Fetch JSON files from API
+                const response = await fetch('/api/list-json-files');
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                }
+                
+                const files = await response.json();
+                console.log("Files detected from API:", files);
+                
+                // Parse county and state from filenames
+                files.forEach(file => {
+                    // Process payment standards files only (to avoid duplicates)
+                    if (file.includes('payment_standards_2025.json')) {
+                        let county, state;
+                        
+                        console.log(`Processing file: ${file}`);
+                        
+                        // Handle different filename formats
+                        if (file.includes('__payment_standards_2025.json')) {
+                            // Format: "county_state__payment_standards_2025.json"
+                            const filenameParts = file.split('__payment_standards_2025.json')[0];
+                            const parts = filenameParts.split('_');
                             
-                            // Handle different filename formats
-                            if (file.includes('__payment_standards_2025.json')) {
-                                // Format: "county_state__payment_standards_2025.json"
-                                const filenameParts = file.split('__payment_standards_2025.json')[0];
-                                const parts = filenameParts.split('_');
-                                
-                                // Get county and state from parts
-                                if (parts.length >= 2) {
-                                    county = parts[0];
-                                    state = parts[1].toUpperCase(); // Convert state to uppercase
-                                }
-                            } else if (file.includes('_payment_standards_2025.json')) {
-                                // Format: "county_state_payment_standards_2025.json"
-                                const filenameParts = file.split('_payment_standards_2025.json')[0];
-                                const parts = filenameParts.split('_');
-                                
-                                // Get county and state from parts
-                                if (parts.length >= 2) {
-                                    county = parts[0];
-                                    state = parts[1].toUpperCase(); // Convert state to uppercase
-                                }
+                            // Get county and state from parts
+                            if (parts.length >= 2) {
+                                county = parts[0];
+                                state = parts[1].toUpperCase(); // Convert state to uppercase
                             }
+                        } else if (file.includes('_payment_standards_2025.json')) {
+                            // Format: "county_state_payment_standards_2025.json"
+                            const filenameParts = file.split('_payment_standards_2025.json')[0];
+                            const parts = filenameParts.split('_');
                             
-                            // Process if county and state were properly extracted
-                            if (county && state) {
-                                console.log(`Detected county: ${county}, state: ${state}`);
-                                
-                                // Normalize state to uppercase
-                                const normalizedState = state.toUpperCase();
-                                
-                                // Initialize state in availableCounties if not exists
-                                if (!availableCounties[normalizedState]) {
-                                    availableCounties[normalizedState] = [];
-                                }
-                                
-                                // Add county to state if not already added
-                                // Use case-insensitive comparison for county ID
-                                const countyId = `${county}_${normalizedState}`;
-                                if (!availableCounties[normalizedState].some(c => c.id.toLowerCase() === countyId.toLowerCase())) {
-                                    availableCounties[normalizedState].push({
-                                        name: county.charAt(0).toUpperCase() + county.slice(1),
-                                        id: countyId
-                                    });
-                                }
+                            // Get county and state from parts
+                            if (parts.length >= 2) {
+                                county = parts[0];
+                                state = parts[parts.length - 1].toUpperCase(); // Take the last part as state
                             }
                         }
-                    });
-                } catch (apiError) {
-                    console.warn("API fetch failed, using hardcoded counties:", apiError);
-                }
+                        
+                        // Process if county and state were properly extracted
+                        if (county && state) {
+                            console.log(`Detected county: ${county}, state: ${state}`);
+                            
+                            // Normalize state to uppercase
+                            const normalizedState = state.toUpperCase();
+                            
+                            // Initialize state in availableCounties if not exists
+                            if (!availableCounties[normalizedState]) {
+                                availableCounties[normalizedState] = [];
+                            }
+                            
+                            // Add county to state if not already added
+                            const countyId = `${county}_${normalizedState}`;
+                            if (!availableCounties[normalizedState].some(c => c.id.toLowerCase() === countyId.toLowerCase())) {
+                                availableCounties[normalizedState].push({
+                                    name: county.charAt(0).toUpperCase() + county.slice(1),
+                                    id: countyId
+                                });
+                            }
+                        }
+                    }
+                });
                 
                 console.log("Final available counties:", availableCounties);
                 
@@ -507,27 +467,14 @@
                 populateStateDropdown();
             } catch (error) {
                 console.error('Error in county detection:', error);
-                // Even if there's an error, try to populate with hardcoded values
-                populateStateDropdown();
+                // Show error message to user
+                const stateSelect = document.getElementById('state');
+                stateSelect.innerHTML = '<option value="">Error loading data. Please refresh the page.</option>';
             }
         }
 
-        // Populate the state dropdown with hard-coded values for reliability
+        // Populate the state dropdown dynamically
         function populateStateDropdown() {
-            // Ensure data structure has counties regardless of detection
-            if (!availableCounties["OH"]) {
-                availableCounties["OH"] = [{
-                    name: "Cuyahoga",
-                    id: "cuyahoga_OH"
-                }];
-            }
-            if (!availableCounties["AL"]) {
-                availableCounties["AL"] = [{
-                    name: "Montgomery",
-                    id: "montgomery_AL"
-                }];
-            }
-            
             // Get the select element
             const stateSelect = document.getElementById('state');
             
@@ -540,22 +487,74 @@
             defaultOption.textContent = '-- Select State --';
             stateSelect.appendChild(defaultOption);
             
-            // Add all states found in the available counties
+            // Comprehensive state mapping for all US states
+            const stateNames = {
+                "AL": "ALABAMA (AL)",
+                "AK": "ALASKA (AK)",
+                "AZ": "ARIZONA (AZ)",
+                "AR": "ARKANSAS (AR)",
+                "CA": "CALIFORNIA (CA)",
+                "CO": "COLORADO (CO)",
+                "CT": "CONNECTICUT (CT)",
+                "DE": "DELAWARE (DE)",
+                "FL": "FLORIDA (FL)",
+                "GA": "GEORGIA (GA)",
+                "HI": "HAWAII (HI)",
+                "ID": "IDAHO (ID)",
+                "IL": "ILLINOIS (IL)",
+                "IN": "INDIANA (IN)",
+                "IA": "IOWA (IA)",
+                "KS": "KANSAS (KS)",
+                "KY": "KENTUCKY (KY)",
+                "LA": "LOUISIANA (LA)",
+                "ME": "MAINE (ME)",
+                "MD": "MARYLAND (MD)",
+                "MA": "MASSACHUSETTS (MA)",
+                "MI": "MICHIGAN (MI)",
+                "MN": "MINNESOTA (MN)",
+                "MS": "MISSISSIPPI (MS)",
+                "MO": "MISSOURI (MO)",
+                "MT": "MONTANA (MT)",
+                "NE": "NEBRASKA (NE)",
+                "NV": "NEVADA (NV)",
+                "NH": "NEW HAMPSHIRE (NH)",
+                "NJ": "NEW JERSEY (NJ)",
+                "NM": "NEW MEXICO (NM)",
+                "NY": "NEW YORK (NY)",
+                "NC": "NORTH CAROLINA (NC)",
+                "ND": "NORTH DAKOTA (ND)",
+                "OH": "OHIO (OH)",
+                "OK": "OKLAHOMA (OK)",
+                "OR": "OREGON (OR)",
+                "PA": "PENNSYLVANIA (PA)",
+                "RI": "RHODE ISLAND (RI)",
+                "SC": "SOUTH CAROLINA (SC)",
+                "SD": "SOUTH DAKOTA (SD)",
+                "TN": "TENNESSEE (TN)",
+                "TX": "TEXAS (TX)",
+                "UT": "UTAH (UT)",
+                "VT": "VERMONT (VT)",
+                "VA": "VIRGINIA (VA)",
+                "WA": "WASHINGTON (WA)",
+                "WV": "WEST VIRGINIA (WV)",
+                "WI": "WISCONSIN (WI)",
+                "WY": "WYOMING (WY)",
+                "DC": "DISTRICT OF COLUMBIA (DC)",
+                "PR": "PUERTO RICO (PR)",
+                "VI": "VIRGIN ISLANDS (VI)",
+                "GU": "GUAM (GU)",
+                "AS": "AMERICAN SAMOA (AS)",
+                "MP": "NORTHERN MARIANA ISLANDS (MP)"
+            };
+            
+            // Add all states found in the available counties (dynamically detected)
             const states = Object.keys(availableCounties).sort();
             states.forEach(state => {
                 const option = document.createElement('option');
                 option.value = state;
                 
-                // Map state codes to full names
-                const stateNames = {
-                    "AL": "ALABAMA (AL)",
-                    "AR": "ARKANSAS (AR)",
-                    "MI": "MICHIGAN (MI)",
-                    "NC": "NORTH CAROLINA (NC)",
-                    "OH": "OHIO (OH)"
-                };
-                
-                option.textContent = stateNames[state] || state;
+                // Use the full state name if available, otherwise use the state code
+                option.textContent = stateNames[state] || `${state} (${state})`;
                 stateSelect.appendChild(option);
             });
             
