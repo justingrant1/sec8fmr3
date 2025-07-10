@@ -1006,6 +1006,10 @@
                     else if (utilityData['other_electric']) {
                         amount = utilityData['other_electric'][bedrooms] || 0;
                     }
+                    // Jefferson County AL format
+                    else if (utilityData['other electric']) {
+                        amount = utilityData['other electric'][bedrooms] || 0;
+                    }
                     break;
                     
                 case 'water':
