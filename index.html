@@ -398,7 +398,7 @@
                 availableCounties = {};
                 
                 // Fetch JSON files from API
-                const response = await fetch('api/list-json-files');
+                const response = await fetch('/api/list-json-files');
                 if (!response.ok) {
                     throw new Error(`API request failed: ${response.status} ${response.statusText}`);
                 }
