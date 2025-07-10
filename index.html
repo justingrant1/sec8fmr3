@@ -463,6 +463,54 @@
                 
                 console.log("Final available counties:", availableCounties);
                 
+                // Check if we have any counties, if not use fallback
+                if (Object.keys(availableCounties).length === 0) {
+                    console.log("No counties detected from API, using fallback...");
+                    availableCounties = {
+                        "OH": [
+                            {
+                                name: "Cuyahoga",
+                                id: "cuyahoga_OH"
+                            },
+                            {
+                                name: "Hamilton",
+                                id: "hamilton_OH"
+                            }
+                        ],
+                        "AL": [
+                            {
+                                name: "Jefferson",
+                                id: "jefferson_AL"
+                            },
+                            {
+                                name: "Montgomery",
+                                id: "montgomery_AL"
+                            }
+                        ],
+                        "MI": [
+                            {
+                                name: "Macomb",
+                                id: "macomb_MI"
+                            },
+                            {
+                                name: "Oakland",
+                                id: "oakland_MI"
+                            },
+                            {
+                                name: "Wayne",
+                                id: "wayne_MI"
+                            }
+                        ],
+                        "MO": [
+                            {
+                                name: "Stlouis",
+                                id: "stlouis_MO"
+                            }
+                        ]
+                    };
+                    console.log("Fallback data applied:", availableCounties);
+                }
+                
                 // Populate state dropdown
                 populateStateDropdown();
             } catch (error) {
